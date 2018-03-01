@@ -17,11 +17,11 @@ namespace TheCountBot
             Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( "cntBotSettings.json" ).Build() ) );
 
             _botManager = new TelegramBotManager();
-            _botManager.Startup();
+            _botManager.StartupAsync().Wait();
 
             Console.ReadLine();
 
-            _botManager.Shutdown();
+            _botManager.ShutdownAsync().Wait();
         }
     }
 }

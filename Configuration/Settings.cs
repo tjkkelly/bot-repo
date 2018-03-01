@@ -10,6 +10,8 @@ namespace TheCountBot.Configuration
 
         public static int CountingChatId => Convert.ToInt32( ThrowIfNotInitialized( "countingChatId" ) );
 
+        public static int MetaCountingChatId => Convert.ToInt32( ThrowIfNotInitialized( "metaCountingChatId" ) ); 
+
         public static void Initialize( ISettingsProvider settingsProvider )
         {
             _settingsProvider = settingsProvider;
