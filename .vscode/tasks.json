@@ -9,7 +9,7 @@
                 "build",
                 "${workspaceFolder}/theCountBot.csproj"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
         }
     ]
 }
