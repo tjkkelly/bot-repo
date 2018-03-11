@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using TheCountBot.Configuration;
@@ -19,7 +20,7 @@ namespace TheCountBot
             _botManager = new TelegramBotManager();
             _botManager.StartupAsync().Wait();
 
-            Console.ReadLine();
+            Thread.Sleep(Timeout.Infinite);
 
             _botManager.ShutdownAsync().Wait();
         }
