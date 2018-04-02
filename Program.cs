@@ -13,7 +13,7 @@ namespace TheCountBot
 
         private static TelegramBotManager _botManager;
 
-        private static string releaseMode = "debug"; // alt is release
+        private static string releaseMode = "release"; // alt is release
 
         static void Main(string[] args)
         {
