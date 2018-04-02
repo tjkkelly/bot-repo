@@ -1,8 +1,11 @@
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Configuration.Binder;
 
 namespace TheCountBot.Configuration
 {
-   public class ConfigurationRootSettingsProvider : ISettingsProvider
+   public class ConfigurationRootSettingsProvider
    {
       private readonly IConfigurationRoot _configurationRoot;
 
@@ -14,6 +17,11 @@ namespace TheCountBot.Configuration
        public object Retrieve( string settingKey )
        {
            return _configurationRoot[settingKey];
+       }
+
+       public List<string> GetSection( string settingKey )
+       {
+           return _configurationRoot.GetSection( settingKey ).Get<List<string>>();
        }
    }
 }
