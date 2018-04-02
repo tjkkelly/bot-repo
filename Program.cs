@@ -13,9 +13,12 @@ namespace TheCountBot
 
         private static TelegramBotManager _botManager;
 
+        private static string releaseMode = "release"; // alt is release
+
         static void Main(string[] args)
         {
-            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( "cntBotSettings.json" ).Build() ) );
+            string fileName = $"cntBotSettings.{releaseMode}.json";
+            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( fileName ).Build() ) );
 
             _botManager = new TelegramBotManager();
             _botManager.StartupAsync().Wait();
