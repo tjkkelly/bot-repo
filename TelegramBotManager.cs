@@ -1,7 +1,12 @@
 using System.Threading.Tasks;
+using System.Threading;
 using Telegram.Bot;
 using TheCountBot.Configuration;
 using Telegram.Bot.Args;
+using System.Linq;
+using System.Collections.Generic;
+using System;
+
 
 namespace TheCountBot
 {
@@ -11,12 +16,21 @@ namespace TheCountBot
 
         private int? lastNumber = null;
 
+        private Timer _stateTimer;
+
+        private List<string> _insultList;
+
+        private Random _rng = new Random();
+
         internal TelegramBotManager()
         {
             _botClient = new TelegramBotClient( Settings.BotIdSecret );
 
             _botClient.OnMessage += OnMessageReceivedAsync;
-            //_botClient.OnMessageEdited += OnMessageEditedRecievedAysnc;
+
+            _stateTimer = new Timer(TimerFunc, null, Settings.TimerWaitTime, Settings.TimerWaitTime);
+
+            _insultList = Settings.InsultsForMessingUpTheNumber;
         }
 
         internal async Task StartupAsync()
@@ -29,6 +43,11 @@ namespace TheCountBot
         {
             await SendMessageAsync("Goodbye cruel world").ConfigureAwait(false);
             _botClient.StopReceiving();
+        }
+
+        public void TimerFunc(object stateInfo)
+        {
+            SendMessageAsync("I'm lonely...").Wait();
         }
 
         private async Task SendMessageAsync( string message )
@@ -50,7 +69,7 @@ namespace TheCountBot
                         }
                         else
                         {
-                            await SendMessageAsync($"@{e.Message.From.Username}, wrong fucking number, fix it...or else").ConfigureAwait(false);
+                            await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
                             lastNumber = null;
                         }
                     }
@@ -61,15 +80,20 @@ namespace TheCountBot
                 }
                 else
                 {
-                    await SendMessageAsync($"@{e.Message.From.Username}, holy shit, that's not even a number!").ConfigureAwait(false);
+                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
                     lastNumber = null;
                 }
+
+                _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
             }
         }
-        
-        // private async void OnMessageEditedRecievedAysnc(object sender, MessageEventArgs e)
-        // {
-        //     //await SendMessageAsync( $"{e.Message.Text} was edited" ).ConfigureAwait( false );
-        // }
+
+        private string GetRandomInsultMessageForUser( string user )
+        {
+            int _randInt = _rng.Next( 0, _insultList.Count );
+            string message = _insultList[_randInt].Replace("{username}", user);
+
+            return message;
+        }
     }
 }
