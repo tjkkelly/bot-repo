@@ -6,7 +6,7 @@ namespace TheCountBot.Configuration
 {  
     public static class Settings
     {
-        private static ISettingsProvider _settingsProvider = null;
+        private static ConfigurationRootSettingsProvider _settingsProvider = null;
 
         public static string BotIdSecret => ThrowIfStringNotInitialized( "botIdSecret" );
 
@@ -16,9 +16,9 @@ namespace TheCountBot.Configuration
 
         public static int TimerWaitTime => Convert.ToInt32( ThrowIfStringNotInitialized("timerWaitTime") );
 
-        public static IEnumerable InsultsForMessingUpTheNumber => ThrowIfArrayNotInitialized("insultsForMessingUpTheNumber");
+        public static List<string> InsultsForMessingUpTheNumber => ThrowIfArrayNotInitialized("insultsForMessingUpTheNumber");
 
-        public static void Initialize( ISettingsProvider settingsProvider )
+        public static void Initialize( ConfigurationRootSettingsProvider settingsProvider )
         {
             _settingsProvider = settingsProvider;
         }
@@ -33,14 +33,14 @@ namespace TheCountBot.Configuration
             return _settingsProvider.Retrieve( configurationKey ).ToString();
         }
 
-        private static IEnumerable ThrowIfArrayNotInitialized( string configurationKey )
+        private static List<string> ThrowIfArrayNotInitialized( string configurationKey )
         {
             if ( _settingsProvider == null )
             {
                 throw new InvalidOperationException( "Configuration root has not been initialized. Call Settings.Initialize on app startup." );
             }
 
-            return _settingsProvider.Retrieve( configurationKey ) as IEnumerable;
+            return _settingsProvider.GetSection( configurationKey );
         }
     }
 }
