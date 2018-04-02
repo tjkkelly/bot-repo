@@ -2,6 +2,6 @@ namespace TheCountBot.Configuration
 {
     public interface ISettingsProvider
     {
-        string Retrieve( string settingKey );
+        object Retrieve( string settingKey );
     }
 }

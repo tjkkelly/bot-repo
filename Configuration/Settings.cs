@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace TheCountBot.Configuration
 {  
@@ -6,25 +8,39 @@ namespace TheCountBot.Configuration
     {
         private static ISettingsProvider _settingsProvider = null;
 
-        public static string BotIdSecret => ThrowIfNotInitialized( "botIdSecret" );
+        public static string BotIdSecret => ThrowIfStringNotInitialized( "botIdSecret" );
 
-        public static int CountingChatId => Convert.ToInt32( ThrowIfNotInitialized( "countingChatId" ) );
+        public static int CountingChatId => Convert.ToInt32( ThrowIfStringNotInitialized( "countingChatId" ) );
 
-        public static int MetaCountingChatId => Convert.ToInt32( ThrowIfNotInitialized( "metaCountingChatId" ) ); 
+        public static int MetaCountingChatId => Convert.ToInt32( ThrowIfStringNotInitialized( "metaCountingChatId" ) );
+
+        public static int TimerWaitTime => Convert.ToInt32( ThrowIfStringNotInitialized("timerWaitTime") );
+
+        public static IEnumerable InsultsForMessingUpTheNumber => ThrowIfArrayNotInitialized("insultsForMessingUpTheNumber");
 
         public static void Initialize( ISettingsProvider settingsProvider )
         {
             _settingsProvider = settingsProvider;
         }
 
-        private static string ThrowIfNotInitialized( string configurationKey )
+        private static string ThrowIfStringNotInitialized( string configurationKey )
         {
             if ( _settingsProvider == null )
             {
                 throw new InvalidOperationException( "Configuration root has not been initialized. Call Settings.Initialize on app startup." );
             }
 
-            return _settingsProvider.Retrieve( configurationKey );
+            return _settingsProvider.Retrieve( configurationKey ).ToString();
+        }
+
+        private static IEnumerable ThrowIfArrayNotInitialized( string configurationKey )
+        {
+            if ( _settingsProvider == null )
+            {
+                throw new InvalidOperationException( "Configuration root has not been initialized. Call Settings.Initialize on app startup." );
+            }
+
+            return _settingsProvider.Retrieve( configurationKey ) as IEnumerable;
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+    "botIdSecret": "564251024:AAH2xC9SeCOf7JuXpdZXifPJ0koAgzwOURo",
+    "countingChatId": -125056554,
+    "metaCountingChatId": -207071694,
+    "timerWaitTime": 86400000,
+    "insultsForMessingUpTheNumber": [
+        "That's not the right number!",
+        "ARE YOU SERIOUS RIGHT NOW?",
+        "C'mon guys...this is NOT that hard. FIX IT!"
+    ]
+}
