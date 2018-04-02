@@ -15,7 +15,7 @@ namespace TheCountBot
 
         static void Main(string[] args)
         {
-            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( "cntBotSettings.json" ).Build() ) );
+            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( "cntBotSettings.debug.json" ).Build() ) );
 
             _botManager = new TelegramBotManager();
             _botManager.StartupAsync().Wait();

@@ -11,7 +11,7 @@ namespace TheCountBot.Configuration
           _configurationRoot = configurationRoot;
        }
 
-       public string Retrieve( string settingKey )
+       public object Retrieve( string settingKey )
        {
            return _configurationRoot[settingKey];
        }
