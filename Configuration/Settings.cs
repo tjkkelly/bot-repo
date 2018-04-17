@@ -18,6 +18,8 @@ namespace TheCountBot.Configuration
 
         public static List<string> InsultsForMessingUpTheNumber => ThrowIfArrayNotInitialized("insultsForMessingUpTheNumber");
 
+        public static string ConnectionString => ThrowIfStringNotInitialized("ConnectionString");
+
         public static void Initialize( ConfigurationRootSettingsProvider settingsProvider )
         {
             _settingsProvider = settingsProvider;

@@ -6,6 +6,7 @@ using Telegram.Bot.Args;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using TheCountBot.Models;
 
 
 namespace TheCountBot
@@ -22,6 +23,8 @@ namespace TheCountBot
 
         private Random _rng = new Random();
 
+        private NumberStoreContext _context;
+
         internal TelegramBotManager()
         {
             _botClient = new TelegramBotClient( Settings.BotIdSecret );
@@ -31,6 +34,8 @@ namespace TheCountBot
             _stateTimer = new Timer(TimerFunc, null, Settings.TimerWaitTime, Settings.TimerWaitTime);
 
             _insultList = Settings.InsultsForMessingUpTheNumber;
+
+            _context = new NumberStoreContext( Settings.ConnectionString );
         }
 
         internal async Task StartupAsync()
@@ -57,10 +62,20 @@ namespace TheCountBot
 
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
+            System.Console.WriteLine("Message Received");
             if (e.Message.Chat.Id == Settings.CountingChatId)
             {
+                NumberStore record = new NumberStore 
+                {
+                    Username = e.Message.From.Username,
+                    Timestamp = DateTime.UtcNow.ToString()
+                };
+                
                 if (int.TryParse(e.Message.Text, out int number))
-                {                
+                {
+                    record.Correct = true;
+                    record.Number = number;
+
                     if (lastNumber != null)
                     {
                         if (number == lastNumber + 1)
@@ -71,6 +86,7 @@ namespace TheCountBot
                         {
                             await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
                             lastNumber = null;
+                            record.Correct = false;
                         }
                     }
                     else
@@ -80,11 +96,16 @@ namespace TheCountBot
                 }
                 else
                 {
+                    record.Correct = false;
+                    record.Number = -1;
+
                     await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
                     lastNumber = null;
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
+
+                await _context.AddRecordAsync( record ).ConfigureAwait( false );
             }
         }
 
