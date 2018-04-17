@@ -4,6 +4,8 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using TheCountBot.Configuration;
+using TheCountBot.Models;
+
 
 namespace TheCountBot
 {
