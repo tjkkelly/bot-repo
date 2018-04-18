@@ -65,6 +65,12 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
+            if ( e.Message.Text == "/stats" )
+            {
+                await SendMessageAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
+                return;
+            } 
+
             if (e.Message.Chat.Id == Settings.CountingChatId)
             {
                 NumberStore record = new NumberStore 
