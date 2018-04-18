@@ -15,7 +15,9 @@ namespace TheCountBot
     {
         private ITelegramBotClient _botClient;
 
-        private int? lastNumber = null;
+        private int? _lastNumber = null;
+
+        private string _lastUserToSendCorrect = null;
 
         private Timer _stateTimer;
 
@@ -70,41 +72,29 @@ namespace TheCountBot
                     Username = e.Message.From.Username,
                     Timestamp = DateTime.UtcNow.ToString()
                 };
-                
-                if (int.TryParse(e.Message.Text, out int number))
+
+                bool isNumberValue = int.TryParse(e.Message.Text, out int number);
+
+                if ( !isNumberValue || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username )) || ((_lastNumber != null) && number != _lastNumber + 1 ) )
+                {
+                    record.Correct = false;
+                    record.Number = -1;
+                    
+                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
+
+                    _lastUserToSendCorrect = null;
+                    _lastNumber = null;
+                }
+                else
                 {
                     record.Correct = true;
                     record.Number = number;
 
-                    if (lastNumber != null)
-                    {
-                        if (number == lastNumber + 1)
-                        {
-                            lastNumber = number;
-                        }
-                        else
-                        {
-                            await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
-                            lastNumber = null;
-                            record.Correct = false;
-                        }
-                    }
-                    else
-                    {
-                        lastNumber = number;   
-                    }
-                }
-                else
-                {
-                    record.Correct = false;
-                    record.Number = -1;
-
-                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait(false);
-                    lastNumber = null;
+                    _lastNumber = number;
+                    _lastUserToSendCorrect = e.Message.From.Username;
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
-
                 await _context.AddRecordAsync( record ).ConfigureAwait( false );
             }
         }
