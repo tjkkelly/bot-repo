@@ -9,5 +9,10 @@ namespace TheCountBot.Models
         public bool Correct;
 
         public string Timestamp;
+
+        public override string ToString()
+        {
+            return $"{Username} {Correct} {Number} {Timestamp}\n";
+        }
     }
 }
