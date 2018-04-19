@@ -19,9 +19,9 @@ namespace TheCountBot.Models
             return new MySqlConnection(ConnectionString);  
         }
 
-        public async Task<string> GetHistoryAsync()
+        public async Task<List<NumberStore>> GetHistoryAsync()
         {
-            string result = "";
+            List<NumberStore> result = new List<NumberStore>();
             using (MySqlConnection conn = GetConnection())
             {
                 await conn.OpenAsync().ConfigureAwait(false);
@@ -34,7 +34,12 @@ namespace TheCountBot.Models
 
                 while ( await reader.ReadAsync().ConfigureAwait( false ) )
                 {
-                    result += $"{reader.GetString(0)}  {reader.GetInt32(1)}  {reader.GetInt32(2)}  {reader.GetString(3)}\n";
+                    result.Add( new NumberStore {
+                        Username = reader.GetString(0),
+                        Number = reader.GetInt32(1),
+                        Correct = reader.GetBoolean(2),
+                        Timestamp = reader.GetString(3)
+                    } );
                 }
 
                 await conn.CloseAsync().ConfigureAwait(false);

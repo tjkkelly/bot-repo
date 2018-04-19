@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using TheCountBot.Models;
+using Telegram.Bot.Types.Enums;
 
 
 namespace TheCountBot
@@ -57,17 +58,60 @@ namespace TheCountBot
             SendMessageAsync("I'm lonely...").Wait();
         }
 
-        private async Task SendMessageAsync( string message )
+        private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
         {
-            await _botClient.SendTextMessageAsync( Settings.MetaCountingChatId, message ).ConfigureAwait( false );
+            await _botClient.SendTextMessageAsync( Settings.MetaCountingChatId, message, mode ).ConfigureAwait( false );
+        }
+
+        private async Task CalculateAndSendMistakesPerPersonAsync( List<NumberStore> list )
+        {
+            var totalMistakesByUser = new Dictionary<String, int>();
+            var totalMessagesByUser = new Dictionary<String, int>();
+            int count = list.Count;
+            
+            foreach( NumberStore record in list ) {
+                if ( !totalMistakesByUser.ContainsKey( record.Username ) )
+                {
+                    totalMistakesByUser[record.Username] = 0;
+                    totalMessagesByUser[record.Username] = 0;
+                }
+                if ( !record.Correct )
+                {
+                    totalMistakesByUser[record.Username] += 1;                        
+                }
+                totalMessagesByUser[record.Username] += 1;
+            }
+
+            string messageToSend = String.Format($"```{"Username", -10} -- {"Total Messages Sent", -30} -- {"Number Of Mistakes", -30} -- {"Percent Of Total Mistakes", -30}\n");
+            totalMistakesByUser.Keys.ToList().ForEach( username => {
+                int totalMessagesSent = totalMessagesByUser[username];
+                int totalMistakes = totalMistakesByUser[username];
+                double percent = ((double) totalMistakes) / count * 100;
+                
+                messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -30} -- {totalMistakes, -30} -- {percent, -30}\n");
+            } );
+            messageToSend += "```";
+
+            await SendMessageAsync( messageToSend, ParseMode.Html ).ConfigureAwait( false );
+        }
+
+        private async Task HandleStatsCommandAsync()
+        {
+            //await SendMessageAsync( (await _context.GetHistoryAsync().ConfigureAwait( false )).ToString() ).ConfigureAwait( false );
+
+            List<NumberStore> list = await _context.GetHistoryAsync().ConfigureAwait( false );
+
+            await CalculateAndSendMistakesPerPersonAsync( list ).ConfigureAwait( false );
+
+            // list.ForEach( i => System.Console.WriteLine( i.ToString() ) );
         }
 
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Text == "/stats" )
+            if ( e.Message.Chat.Id == Settings.MetaCountingChatId && e.Message.Text == "/stats" )
             {
-                await SendMessageAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
+                await HandleStatsCommandAsync().ConfigureAwait( false );
                 return;
             } 
 
