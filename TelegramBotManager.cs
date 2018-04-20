@@ -97,13 +97,7 @@ namespace TheCountBot
 
         private async Task HandleStatsCommandAsync()
         {
-            //await SendMessageAsync( (await _context.GetHistoryAsync().ConfigureAwait( false )).ToString() ).ConfigureAwait( false );
-
-            List<NumberStore> list = await _context.GetHistoryAsync().ConfigureAwait( false );
-
-            await CalculateAndSendMistakesPerPersonAsync( list ).ConfigureAwait( false );
-
-            // list.ForEach( i => System.Console.WriteLine( i.ToString() ) );
+            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
         }
 
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
