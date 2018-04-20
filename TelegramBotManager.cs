@@ -67,7 +67,6 @@ namespace TheCountBot
         {
             var totalMistakesByUser = new Dictionary<String, int>();
             var totalMessagesByUser = new Dictionary<String, int>();
-            int count = list.Count;
             
             foreach( NumberStore record in list ) {
                 if ( !totalMistakesByUser.ContainsKey( record.Username ) )
@@ -82,11 +81,13 @@ namespace TheCountBot
                 totalMessagesByUser[record.Username] += 1;
             }
 
+            int countOfTotalMistakes = totalMistakesByUser.Keys.ToList().Aggregate(0, (acc, key) => acc + totalMistakesByUser[key]);
+
             string messageToSend = String.Format($"```\n{"Username", -20} -- {"Total Messages Sent", -30} -- {"Number Of Mistakes", -30} -- {"Percent Of Total Mistakes", -30}\n");
             totalMistakesByUser.Keys.ToList().ForEach( username => {
                 int totalMessagesSent = totalMessagesByUser[username];
                 int totalMistakes = totalMistakesByUser[username];
-                double percent = ((double) totalMistakes) / count * 100;
+                double percent = ((double) totalMistakes) / countOfTotalMistakes * 100;
                 
                 messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -30} -- {totalMistakes, -30} -- {percent, -30}\n");
             } );
@@ -103,7 +104,7 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == Settings.MetaCountingChatId && e.Message.Text == "/stats" )
+            if ( e.Message.Chat.Id == Settings.MetaCountingChatId && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
                 await HandleStatsCommandAsync().ConfigureAwait( false );
                 return;
