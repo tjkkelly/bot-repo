@@ -82,7 +82,7 @@ namespace TheCountBot
                 totalMessagesByUser[record.Username] += 1;
             }
 
-            string messageToSend = String.Format($"```{"Username", -10} -- {"Total Messages Sent", -30} -- {"Number Of Mistakes", -30} -- {"Percent Of Total Mistakes", -30}\n");
+            string messageToSend = String.Format($"```\n{"Username", -20} -- {"Total Messages Sent", -30} -- {"Number Of Mistakes", -30} -- {"Percent Of Total Mistakes", -30}\n");
             totalMistakesByUser.Keys.ToList().ForEach( username => {
                 int totalMessagesSent = totalMessagesByUser[username];
                 int totalMistakes = totalMistakesByUser[username];
@@ -92,7 +92,7 @@ namespace TheCountBot
             } );
             messageToSend += "```";
 
-            await SendMessageAsync( messageToSend, ParseMode.Html ).ConfigureAwait( false );
+            await SendMessageAsync( messageToSend, ParseMode.Markdown ).ConfigureAwait( false );
         }
 
         private async Task HandleStatsCommandAsync()
