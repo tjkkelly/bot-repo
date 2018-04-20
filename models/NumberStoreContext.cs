@@ -19,6 +19,37 @@ namespace TheCountBot.Models
             return new MySqlConnection(ConnectionString);  
         }
 
+        public async Task<List<NumberStore>> GetHistoryAsync()
+        {
+            List<NumberStore> result = new List<NumberStore>();
+            using (MySqlConnection conn = GetConnection())
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+
+                System.Console.WriteLine("Opened Database Connection");
+
+                var selectCommand = new MySqlCommand( "SELECT * FROM NumberStore ORDER BY timestamp;" , conn );
+
+                System.Data.Common.DbDataReader reader = await selectCommand.ExecuteReaderAsync().ConfigureAwait( false );
+
+                while ( await reader.ReadAsync().ConfigureAwait( false ) )
+                {
+                    result.Add( new NumberStore {
+                        Username = reader.GetString(0),
+                        Number = reader.GetInt32(1),
+                        Correct = reader.GetBoolean(2),
+                        Timestamp = reader.GetString(3)
+                    } );
+                }
+
+                await conn.CloseAsync().ConfigureAwait(false);
+
+                System.Console.WriteLine("Closed Database Connection");
+            }
+
+            return result;
+        }
+
         public async Task<bool> AddRecordAsync( NumberStore record )
         {
             using (MySqlConnection conn = GetConnection())
