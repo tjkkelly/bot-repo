@@ -114,7 +114,7 @@ namespace TheCountBot
             {
                 NumberStore record = new NumberStore 
                 {
-                    Username = e.Message.From.Username,
+                    Username = e.Message.From.Username == null ? e.Message.From.FirstName : e.Message.From.Username,
                     Timestamp = DateTime.UtcNow.ToString()
                 };
 
