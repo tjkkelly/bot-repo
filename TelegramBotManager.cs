@@ -152,7 +152,7 @@ namespace TheCountBot
                     record.Correct = true;
                     record.Number = number;
 
-                    HandleCoolNumbers(number);
+                    await HandleCoolNumbersAsync(number).ConfigureAwait( false );
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
@@ -194,7 +194,7 @@ namespace TheCountBot
             return x > 1000 && x % 1000 == 0;
         }
 
-        private async Task HandleCoolNumbers(int x)
+        private async Task HandleCoolNumbersAsync(int x)
         {
             if (IsSameDigits(x))
                 await SendMessageAsync($"Nice! {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
