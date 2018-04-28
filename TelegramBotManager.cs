@@ -155,6 +155,8 @@ namespace TheCountBot
 
                     record.Correct = true;
                     record.Number = number;
+
+                    handleCoolNumbers(number);
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
@@ -162,6 +164,50 @@ namespace TheCountBot
             }
         }
 
+        private bool sameDigits(int x)
+        {
+            //not counting this
+            if (x < 10) return false;
+            int firstDigit=x%10;
+            while (x > 0){
+                if ( x%10!=firstDigit) return false;
+                x/=10;
+            }
+            return true;
+        }
+
+        private bool isPalindrome(int x)
+        {
+            //not counting this
+            if (x < 10) return false;
+
+            int original=x, reverse=0;
+
+            while (x > 0)
+            {
+                reverse*=10;
+                reverse+=x%10;
+                x/=10;
+            }
+
+            return original == reverse;
+        }
+
+        private bool is1000(int x)
+        {
+            return x > 1000 && x%1000==0;
+        }
+
+        private  void handleCoolNumbers(int x)
+        {
+            if (sameDigits(x))
+                await SendMessageAsync($"Nice! {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
+            else if (isPalindrome(x))
+                await SendMessageAsync($"Nice! {x} is a palindrome!" ).ConfigureAwait( false );
+            else if (is1000(x))
+                await SendMessageAsync($"Nice work chugging along!" ).ConfigureAwait( false );
+
+        }
         private string GetRandomInsultMessageForUser( string user )
         {
             int _randInt = _rng.Next( 0, _insultList.Count );
