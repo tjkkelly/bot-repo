@@ -101,6 +101,15 @@ namespace TheCountBot
             await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
         }
 
+        private bool moreRobustNumberCheck(string x)
+        {
+            if (x.StartsWith("0")) return false;
+
+            //potentially other checks...
+
+            return true;
+        }
+
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
@@ -118,25 +127,34 @@ namespace TheCountBot
                     Timestamp = DateTime.UtcNow.ToString()
                 };
 
+                //this is cool that you can declare a number here!
                 bool isNumberValue = int.TryParse(e.Message.Text, out int number);
+                isNumberValue &= moreRobustNumberCheck(e.Message.Text);
 
+                // is there a way to make this if statement span more than one line?
+                // so
+                // if ( !isNumberValue
+                //      || (condition)
+                //      || (another condition) )
+                // { stuff;}
                 if ( !isNumberValue || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username )) || ((_lastNumber != null) && number != _lastNumber + 1 ) )
                 {
-                    record.Correct = false;
-                    record.Number = -1;
-                    
-                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
-
                     _lastUserToSendCorrect = null;
                     _lastNumber = null;
+
+                    record.Correct = false;
+                    record.Number = -1;
+
+                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
+
                 }
                 else
                 {
-                    record.Correct = true;
-                    record.Number = number;
-
                     _lastNumber = number;
                     _lastUserToSendCorrect = e.Message.From.Username;
+
+                    record.Correct = true;
+                    record.Number = number;
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
