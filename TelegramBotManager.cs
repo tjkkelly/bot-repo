@@ -67,7 +67,7 @@ namespace TheCountBot
         {
             var totalMistakesByUser = new Dictionary<String, int>();
             var totalMessagesByUser = new Dictionary<String, int>();
-            
+
             foreach( NumberStore record in list ) {
                 if ( !totalMistakesByUser.ContainsKey( record.Username ) )
                 {
@@ -76,7 +76,7 @@ namespace TheCountBot
                 }
                 if ( !record.Correct )
                 {
-                    totalMistakesByUser[record.Username] += 1;                        
+                    totalMistakesByUser[record.Username] += 1;
                 }
                 totalMessagesByUser[record.Username] += 1;
             }
@@ -101,7 +101,7 @@ namespace TheCountBot
             await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
         }
 
-        private bool moreRobustNumberCheck(string x)
+        private bool MoreRobustNumberCheck(string x)
         {
             if (x.StartsWith("0")) return false;
 
@@ -113,11 +113,12 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == Settings.MetaCountingChatId && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
+            if ( e.Message.Chat.Id == Settings.MetaCountingChatId
+                    && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
                 await HandleStatsCommandAsync().ConfigureAwait( false );
                 return;
-            } 
+            }
 
             if (e.Message.Chat.Id == Settings.CountingChatId)
             {
@@ -127,17 +128,12 @@ namespace TheCountBot
                     Timestamp = DateTime.UtcNow.ToString()
                 };
 
-                //this is cool that you can declare a number here!
                 bool isNumberValue = int.TryParse(e.Message.Text, out int number);
-                isNumberValue &= moreRobustNumberCheck(e.Message.Text);
+                isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
 
-                // is there a way to make this if statement span more than one line?
-                // so
-                // if ( !isNumberValue
-                //      || (condition)
-                //      || (another condition) )
-                // { stuff;}
-                if ( !isNumberValue || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username )) || ((_lastNumber != null) && number != _lastNumber + 1 ) )
+                if ( !isNumberValue
+                        || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ))
+                        || ((_lastNumber != null) && number != _lastNumber + 1 ) )
                 {
                     _lastUserToSendCorrect = null;
                     _lastNumber = null;
@@ -156,7 +152,7 @@ namespace TheCountBot
                     record.Correct = true;
                     record.Number = number;
 
-                    handleCoolNumbers(number);
+                    HandleCoolNumbers(number);
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
@@ -164,26 +160,26 @@ namespace TheCountBot
             }
         }
 
-        private bool sameDigits(int x)
+        private bool IsSameDigits(int x)
         {
-            //not counting this
-            if (x < 10) return false;
+            //not counting numbers less than 10
+            if ( x < 10 ) return false;
             int firstDigit=x%10;
-            while (x > 0){
-                if ( x%10!=firstDigit) return false;
+            while ( x > 0 ){
+                if ( x % 10 != firstDigit ) return false;
                 x/=10;
             }
             return true;
         }
 
-        private bool isPalindrome(int x)
+        private bool IsPalindrome(int x)
         {
-            //not counting this
-            if (x < 10) return false;
+            //not counting numbers less than 10
+            if ( x < 10 ) return false;
 
             int original=x, reverse=0;
 
-            while (x > 0)
+            while ( x > 0 )
             {
                 reverse*=10;
                 reverse+=x%10;
@@ -193,21 +189,21 @@ namespace TheCountBot
             return original == reverse;
         }
 
-        private bool is1000(int x)
+        private bool Is1000(int x)
         {
-            return x > 1000 && x%1000==0;
+            return x > 1000 && x % 1000 == 0;
         }
 
-        private  void handleCoolNumbers(int x)
+        private async Task HandleCoolNumbers(int x)
         {
-            if (sameDigits(x))
+            if (IsSameDigits(x))
                 await SendMessageAsync($"Nice! {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
-            else if (isPalindrome(x))
+            else if (IsPalindrome(x))
                 await SendMessageAsync($"Nice! {x} is a palindrome!" ).ConfigureAwait( false );
-            else if (is1000(x))
+            else if (Is1000(x))
                 await SendMessageAsync($"Nice work chugging along!" ).ConfigureAwait( false );
-
         }
+
         private string GetRandomInsultMessageForUser( string user )
         {
             int _randInt = _rng.Next( 0, _insultList.Count );
