@@ -1,3 +1,4 @@
+# Base image for build
 FROM microsoft/dotnet:latest AS build-env
 WORKDIR /app
 
