@@ -1,0 +1,11 @@
+# bot-repo
+
+## Running a local copy
+This will not talk or read from metacounting or counting 
+
+1. Update the `releaseMode` to 'debug' in `Program.cs`
+2. Install docker 
+3. Run `docker build -f Dockerfile .`
+4. Get the docker image id with `docker images` -- it should be the top one
+5. Run 'docker run -d {docker image id acquired from 4}'
+
