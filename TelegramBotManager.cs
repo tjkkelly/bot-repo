@@ -67,7 +67,7 @@ namespace TheCountBot
         {
             var totalMistakesByUser = new Dictionary<String, int>();
             var totalMessagesByUser = new Dictionary<String, int>();
-
+            
             foreach( NumberStore record in list ) {
                 if ( !totalMistakesByUser.ContainsKey( record.Username ) )
                 {
@@ -76,7 +76,7 @@ namespace TheCountBot
                 }
                 if ( !record.Correct )
                 {
-                    totalMistakesByUser[record.Username] += 1;
+                    totalMistakesByUser[record.Username] += 1;                        
                 }
                 totalMessagesByUser[record.Username] += 1;
             }
@@ -101,24 +101,14 @@ namespace TheCountBot
             await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
         }
 
-        private bool MoreRobustNumberCheck(string x)
-        {
-            if (x.StartsWith("0")) return false;
-
-            //potentially other checks...
-
-            return true;
-        }
-
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == Settings.MetaCountingChatId
-                    && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
+            if ( e.Message.Chat.Id == Settings.MetaCountingChatId && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
                 await HandleStatsCommandAsync().ConfigureAwait( false );
                 return;
-            }
+            } 
 
             if (e.Message.Chat.Id == Settings.CountingChatId)
             {
@@ -129,79 +119,29 @@ namespace TheCountBot
                 };
 
                 bool isNumberValue = int.TryParse(e.Message.Text, out int number);
-                isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
 
-                if ( !isNumberValue
-                        || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ))
-                        || ((_lastNumber != null) && number != _lastNumber + 1 ) )
+                if ( !isNumberValue || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username )) || ((_lastNumber != null) && number != _lastNumber + 1 ) )
                 {
-                    _lastUserToSendCorrect = null;
-                    _lastNumber = null;
-
                     record.Correct = false;
                     record.Number = -1;
-
+                    
                     await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
 
+                    _lastUserToSendCorrect = null;
+                    _lastNumber = null;
                 }
                 else
                 {
-                    _lastNumber = number;
-                    _lastUserToSendCorrect = e.Message.From.Username;
-
                     record.Correct = true;
                     record.Number = number;
 
-                    await HandleCoolNumbersAsync(number).ConfigureAwait( false );
+                    _lastNumber = number;
+                    _lastUserToSendCorrect = e.Message.From.Username;
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
                 await _context.AddRecordAsync( record ).ConfigureAwait( false );
             }
-        }
-
-        private bool IsSameDigits(int x)
-        {
-            //not counting numbers less than 10
-            if ( x < 10 ) return false;
-            int firstDigit=x%10;
-            while ( x > 0 ){
-                if ( x % 10 != firstDigit ) return false;
-                x/=10;
-            }
-            return true;
-        }
-
-        private bool IsPalindrome(int x)
-        {
-            //not counting numbers less than 10
-            if ( x < 10 ) return false;
-
-            int original=x, reverse=0;
-
-            while ( x > 0 )
-            {
-                reverse*=10;
-                reverse+=x%10;
-                x/=10;
-            }
-
-            return original == reverse;
-        }
-
-        private bool Is1000(int x)
-        {
-            return x > 1000 && x % 1000 == 0;
-        }
-
-        private async Task HandleCoolNumbersAsync(int x)
-        {
-            if (IsSameDigits(x))
-                await SendMessageAsync($"Nice! {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
-            else if (IsPalindrome(x))
-                await SendMessageAsync($"Nice! {x} is a palindrome!" ).ConfigureAwait( false );
-            else if (Is1000(x))
-                await SendMessageAsync($"Nice work chugging along!" ).ConfigureAwait( false );
         }
 
         private string GetRandomInsultMessageForUser( string user )
