@@ -4,6 +4,13 @@
     "metaCountingChatId": -207071694,
     "timerWaitTime": 86400000,
     "ConnectionString" : "Server=thecntbotinstance.cmhw6m7k7gwh.us-east-2.rds.amazonaws.com;user=masteruser;password=612tDBO6gbNRBuRBSdcjVd2S;SSL Mode=None;Database=NumberStoreDB",
+    "numbersInfoUrl": "http://numbersapi.com",
+    "notAnInterestingNumberResponse": [
+        "is a number for which we're missing a fact (submit one to numbersapi at google mail!)",
+        "is an uninteresting number",
+        "is an unremarkable number",
+        "is a boring number"
+    ],
     "insultsForMessingUpTheNumber": [
         "@{username} that's not the right number!",
         "@{username} ARE YOU SERIOUS RIGHT NOW?",

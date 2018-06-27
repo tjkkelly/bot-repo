@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System;
 using TheCountBot.Models;
 using Telegram.Bot.Types.Enums;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.IO;
 
 
 namespace TheCountBot
@@ -28,6 +31,8 @@ namespace TheCountBot
 
         private NumberStoreContext _context;
 
+        private HttpClient _httpClient;
+
         internal TelegramBotManager()
         {
             _botClient = new TelegramBotClient( Settings.BotIdSecret );
@@ -39,6 +44,8 @@ namespace TheCountBot
             _insultList = Settings.InsultsForMessingUpTheNumber;
 
             _context = new NumberStoreContext( Settings.ConnectionString );
+
+            _httpClient = new HttpClient();
         }
 
         internal async Task StartupAsync()
@@ -202,6 +209,8 @@ namespace TheCountBot
                 await SendMessageAsync($"Nice! {x} is a palindrome!" ).ConfigureAwait( false );
             else if (Is1000(x))
                 await SendMessageAsync($"Nice work chugging along!" ).ConfigureAwait( false );
+
+            await HandleFactCheckingAsync( x ).ConfigureAwait( false );
         }
 
         private string GetRandomInsultMessageForUser( string user )
@@ -210,6 +219,33 @@ namespace TheCountBot
             string message = _insultList[_randInt].Replace("{username}", user);
 
             return message;
+        }
+
+        private async Task HandleFactCheckingAsync( int number )
+        {
+            Uri uri = new Uri( $"{Settings.NumbersInfoUrl}/{number}" );
+
+            HttpResponseMessage response = await _httpClient.GetAsync( uri ).ConfigureAwait( false );
+            
+            if ( response.IsSuccessStatusCode ) {
+                string message = await new StreamReader( await response.Content.ReadAsStreamAsync().ConfigureAwait( false ) ).ReadToEndAsync().ConfigureAwait( false );
+
+                if ( IsCoolFact( message ) )
+                {
+                    await SendMessageAsync( message ).ConfigureAwait( false );
+                }
+            }
+        }
+
+        private bool IsCoolFact( string messsage )
+        {
+            foreach ( var uninterestingResponse in Settings.NotAnInterestingNumberResponse ) {
+                if ( messsage.Contains( uninterestingResponse ) ) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
