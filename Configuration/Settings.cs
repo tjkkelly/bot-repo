@@ -18,7 +18,13 @@ namespace TheCountBot.Configuration
 
         public static List<string> InsultsForMessingUpTheNumber => ThrowIfArrayNotInitialized("insultsForMessingUpTheNumber");
 
+        public static List<string> NotAnInterestingNumberResponse => ThrowIfArrayNotInitialized( "notAnInterestingNumberResponse" );
+
         public static string ConnectionString => ThrowIfStringNotInitialized("ConnectionString");
+
+        public static string NumbersInfoUrl => ThrowIfStringNotInitialized("numbersInfoUrl");
+
+        public static int TimeoutForHttpClient => Convert.ToInt32( ThrowIfStringNotInitialized( "timeoutForHttpClient" ) );
 
         public static void Initialize( ConfigurationRootSettingsProvider settingsProvider )
         {
