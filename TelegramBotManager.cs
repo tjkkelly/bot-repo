@@ -9,7 +9,6 @@ using System;
 using TheCountBot.Models;
 using Telegram.Bot.Types.Enums;
 using System.Net.Http;
-using Newtonsoft.Json;
 using System.IO;
 
 
