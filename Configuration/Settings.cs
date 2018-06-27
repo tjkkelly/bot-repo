@@ -24,6 +24,8 @@ namespace TheCountBot.Configuration
 
         public static string NumbersInfoUrl => ThrowIfStringNotInitialized("numbersInfoUrl");
 
+        public static int TimeoutForHttpClient => Convert.ToInt32( ThrowIfStringNotInitialized( "timeoutForHttpClient" ) );
+
         public static void Initialize( ConfigurationRootSettingsProvider settingsProvider )
         {
             _settingsProvider = settingsProvider;

@@ -45,6 +45,7 @@ namespace TheCountBot
             _context = new NumberStoreContext( Settings.ConnectionString );
 
             _httpClient = new HttpClient();
+            _httpClient.Timeout = new TimeSpan( Settings.TimeoutForHttpClient );
         }
 
         internal async Task StartupAsync()
@@ -225,7 +226,7 @@ namespace TheCountBot
             Uri uri = new Uri( $"{Settings.NumbersInfoUrl}/{number}" );
 
             HttpResponseMessage response = await _httpClient.GetAsync( uri ).ConfigureAwait( false );
-            
+
             if ( response.IsSuccessStatusCode ) {
                 string message = await new StreamReader( await response.Content.ReadAsStreamAsync().ConfigureAwait( false ) ).ReadToEndAsync().ConfigureAwait( false );
 
