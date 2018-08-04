@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration.Json;
 using TheCountBot.Configuration;
 using TheCountBot.Models;
 
-
 namespace TheCountBot
 {
     class Program
@@ -14,13 +13,12 @@ namespace TheCountBot
         private static IConfiguration _configuration { get; set; }
 
         private static TelegramBotManager _botManager;
-
-        // either "debug" or "relase"
-        private static string releaseMode = "release";
+        
+        private static ReleaseMode releaseMode = ReleaseMode.Debug;
 
         static void Main(string[] args)
         {
-            string fileName = $"cntBotSettings.{releaseMode}.json";
+            string fileName = $"cntBotSettings.{releaseMode.ToString()}.json";
             Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( fileName ).Build() ) );
 
             _botManager = new TelegramBotManager();
@@ -30,5 +28,11 @@ namespace TheCountBot
 
             _botManager.ShutdownAsync().Wait();
         }
+    }
+
+    internal enum ReleaseMode
+    {
+        Debug = 0,
+        Release = 1
     }
 }
