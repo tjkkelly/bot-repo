@@ -5,28 +5,37 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using TheCountBot.Configuration;
 using TheCountBot.Models;
+using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace TheCountBot
 {
     class Program
     {
-        private static IConfiguration _configuration { get; set; }
-
-        private static TelegramBotManager _botManager;
-        
         private static ReleaseMode releaseMode = ReleaseMode.Debug;
+
+        private static void ConfigureServices( IServiceCollection serviceCollection )
+        {
+            string fileName = $"cntBotSettings.{releaseMode.ToString()}.json";
+
+            IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath( Directory.GetCurrentDirectory() )
+            .AddJsonFile( fileName )
+            .Build();
+
+            serviceCollection.AddOptions();
+            serviceCollection.Configure<Settings>( configuration );
+        }
 
         static void Main(string[] args)
         {
-            string fileName = $"cntBotSettings.{releaseMode.ToString()}.json";
-            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( fileName ).Build() ) );
+            IServiceCollection serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            _botManager = new TelegramBotManager();
-            _botManager.StartupAsync().Wait();
-
-            Thread.Sleep(Timeout.Infinite);
-
-            _botManager.ShutdownAsync().Wait();
+            serviceProvider.GetService<TelegramBotManager>().Run().Wait();
         }
     }
 

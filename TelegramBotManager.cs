@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System;
 using TheCountBot.Models;
 using Telegram.Bot.Types.Enums;
-
+using Microsoft.Extensions.Options;
 
 namespace TheCountBot
 {
@@ -28,30 +28,38 @@ namespace TheCountBot
 
         private NumberStoreContext _context;
 
-        internal TelegramBotManager()
+        private readonly Settings _settings;
+
+        internal TelegramBotManager( IOptions<Settings> settingsOptions )
         {
-            _botClient = new TelegramBotClient( Settings.BotIdSecret );
+            _settings = settingsOptions.Value;
+
+            _botClient = new TelegramBotClient( _settings.BotIdSecret );
 
             _botClient.OnMessage += OnMessageReceivedAsync;
 
-            _stateTimer = new Timer(TimerFunc, null, Settings.TimerWaitTime, Settings.TimerWaitTime);
+            _stateTimer = new Timer(TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime);
 
-            _insultList = Settings.InsultsForMessingUpTheNumber;
+            _insultList = _settings.InsultsForMessingUpTheNumber;
 
-            _context = new NumberStoreContext( Settings.ConnectionString );
+            _context = new NumberStoreContext( _settings.ConnectionString );
         }
 
-        internal async Task StartupAsync()
+        internal async Task Run()
         {
             await SendMessageAsync("Welcome me, heathens").ConfigureAwait(false);
             _botClient.StartReceiving();
-        }
 
-        internal async Task ShutdownAsync()
-        {
-            await SendMessageAsync("Goodbye cruel world").ConfigureAwait(false);
+            Thread.Sleep(Timeout.Infinite);
+
             _botClient.StopReceiving();
         }
+
+        // internal async Task ShutdownAsync()
+        // {
+        //     await SendMessageAsync("Goodbye cruel world").ConfigureAwait(false);
+        //     _botClient.StopReceiving();
+        // }
 
         public void TimerFunc(object stateInfo)
         {
@@ -60,7 +68,7 @@ namespace TheCountBot
 
         private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
         {
-            await _botClient.SendTextMessageAsync( Settings.MetaCountingChatId, message, mode ).ConfigureAwait( false );
+            await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode ).ConfigureAwait( false );
         }
 
         private async Task CalculateAndSendMistakesPerPersonAsync( List<NumberStore> list )
@@ -113,14 +121,14 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == Settings.MetaCountingChatId
+            if ( e.Message.Chat.Id == _settings.MetaCountingChatId
                     && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
                 await HandleStatsCommandAsync().ConfigureAwait( false );
                 return;
             }
 
-            if (e.Message.Chat.Id == Settings.CountingChatId)
+            if (e.Message.Chat.Id == _settings.CountingChatId)
             {
                 NumberStore record = new NumberStore 
                 {
@@ -155,7 +163,7 @@ namespace TheCountBot
                     await HandleCoolNumbersAsync( number, e.Message.From.Username ).ConfigureAwait( false );
                 }
 
-                _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
+                _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
                 await _context.AddRecordAsync( record ).ConfigureAwait( false );
             }
         }
