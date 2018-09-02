@@ -23,6 +23,7 @@ namespace TheCountBot
             ITelegramBotClient telegramBotClient = new TelegramBotClient( settings.BotIdSecret );
 
             serviceCollection.AddSingleton<ITelegramBotClient>( telegramBotClient );
+            serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
         }
 
         private static void ConfigureServices( IServiceCollection serviceCollection )
@@ -40,14 +41,14 @@ namespace TheCountBot
             RegisteredDependencies( serviceCollection );
         }
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             IServiceCollection serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
             
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            serviceProvider.GetService<TelegramBotManager>().Run().Wait();
+            await serviceProvider.GetService<ITelegramBotManager>().RunAsync();
         }
     }
 

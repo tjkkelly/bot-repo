@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace TheCountBot
 {
-    internal class TelegramBotManager
+    internal class TelegramBotManager : ITelegramBotManager
     {
         private ITelegramBotClient _botClient;
 
@@ -29,7 +29,7 @@ namespace TheCountBot
 
         private readonly Settings _settings;
 
-        internal TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
+        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
         {
             _settings = settingsOptions.Value;
 
@@ -44,7 +44,7 @@ namespace TheCountBot
             _context = new NumberStoreContext( _settings.ConnectionString );
         }
 
-        internal async Task Run()
+        public async Task RunAsync()
         {
             await SendMessageAsync("Welcome me, heathens").ConfigureAwait(false);
             _botClient.StartReceiving();
@@ -60,7 +60,7 @@ namespace TheCountBot
         //     _botClient.StopReceiving();
         // }
 
-        public void TimerFunc(object stateInfo)
+        private void TimerFunc(object stateInfo)
         {
             SendMessageAsync("I'm lonely...").Wait();
         }
