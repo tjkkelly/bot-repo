@@ -88,7 +88,7 @@ namespace TheCountBot
                 int totalMessagesSent = totalMessagesByUser[username];
                 int totalMistakes = totalMistakesByUser[username];
                 double percent = ((double) totalMistakes) / countOfTotalMistakes * 100;
-                
+
                 messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -30} -- {totalMistakes, -30} -- {percent, -30}\n");
             } );
             messageToSend += "```";
@@ -152,7 +152,7 @@ namespace TheCountBot
                     record.Correct = true;
                     record.Number = number;
 
-                    await HandleCoolNumbersAsync(number).ConfigureAwait( false );
+                    await HandleCoolNumbersAsync( number, e.Message.From.Username ).ConfigureAwait( false );
                 }
 
                 _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
@@ -194,14 +194,14 @@ namespace TheCountBot
             return x > 1000 && x % 1000 == 0;
         }
 
-        private async Task HandleCoolNumbersAsync(int x)
+        private async Task HandleCoolNumbersAsync(int x, string user )
         {
             if (IsSameDigits(x))
-                await SendMessageAsync($"Nice! {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
+                await SendMessageAsync($"YO {user}, {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
             else if (IsPalindrome(x))
-                await SendMessageAsync($"Nice! {x} is a palindrome!" ).ConfigureAwait( false );
+                await SendMessageAsync($"Hey, {user}! {x} is a palindrome!" ).ConfigureAwait( false );
             else if (Is1000(x))
-                await SendMessageAsync($"Nice work chugging along!" ).ConfigureAwait( false );
+                await SendMessageAsync($"AYYYYYY {user}" ).ConfigureAwait( false );
         }
 
         private string GetRandomInsultMessageForUser( string user )
