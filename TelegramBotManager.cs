@@ -67,7 +67,7 @@ namespace TheCountBot
 
         private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
         {
-            await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode ).ConfigureAwait( false );
+            await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode );
         }
 
         private async Task CalculateAndSendMistakesPerPersonAsync( List<NumberStore> list )
@@ -100,12 +100,12 @@ namespace TheCountBot
             } );
             messageToSend += "```";
 
-            await SendMessageAsync( messageToSend, ParseMode.Markdown ).ConfigureAwait( false );
+            await SendMessageAsync( messageToSend, ParseMode.Markdown );
         }
 
         private async Task HandleStatsCommandAsync()
         {
-            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
+            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync() );
         }
 
         private bool MoreRobustNumberCheck(string x)
@@ -123,7 +123,7 @@ namespace TheCountBot
             if ( e.Message.Chat.Id == _settings.MetaCountingChatId
                     && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
-                await HandleStatsCommandAsync().ConfigureAwait( false );
+                await HandleStatsCommandAsync();
                 return;
             }
 
@@ -148,7 +148,7 @@ namespace TheCountBot
                     record.Correct = false;
                     record.Number = -1;
 
-                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
+                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) );
 
                 }
                 else
@@ -159,11 +159,11 @@ namespace TheCountBot
                     record.Correct = true;
                     record.Number = number;
 
-                    await HandleCoolNumbersAsync( number, e.Message.From.Username ).ConfigureAwait( false );
+                    await HandleCoolNumbersAsync( number, e.Message.From.Username );
                 }
 
                 _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
-                await _context.AddRecordAsync( record ).ConfigureAwait( false );
+                await _context.AddRecordAsync( record );
             }
         }
 
@@ -204,11 +204,11 @@ namespace TheCountBot
         private async Task HandleCoolNumbersAsync(int x, string user )
         {
             if (IsSameDigits(x))
-                await SendMessageAsync($"YO {user}, {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
+                await SendMessageAsync($"YO {user}, {x} is made up of all {x%10}s!" );
             else if (IsPalindrome(x))
-                await SendMessageAsync($"Hey, {user}! {x} is a palindrome!" ).ConfigureAwait( false );
+                await SendMessageAsync($"Hey, {user}! {x} is a palindrome!" );
             else if (Is1000(x))
-                await SendMessageAsync($"AYYYYYY {user}" ).ConfigureAwait( false );
+                await SendMessageAsync($"AYYYYYY {user}" );
         }
 
         private string GetRandomInsultMessageForUser( string user )
