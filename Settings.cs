@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace TheCountBot.Configuration
+namespace TheCountBot
 {  
     public class Settings
     {

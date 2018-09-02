@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using System.Threading;
 using Telegram.Bot;
-using TheCountBot.Configuration;
 using Telegram.Bot.Args;
 using System.Linq;
 using System.Collections.Generic;
@@ -30,11 +29,11 @@ namespace TheCountBot
 
         private readonly Settings _settings;
 
-        internal TelegramBotManager( IOptions<Settings> settingsOptions )
+        internal TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
         {
             _settings = settingsOptions.Value;
 
-            _botClient = new TelegramBotClient( _settings.BotIdSecret );
+            _botClient = telegramBotClient;
 
             _botClient.OnMessage += OnMessageReceivedAsync;
 
