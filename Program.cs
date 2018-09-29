@@ -3,32 +3,52 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
-using TheCountBot.Configuration;
 using TheCountBot.Models;
-
+using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Telegram.Bot;
 
 namespace TheCountBot
 {
     class Program
     {
-        private static IConfiguration _configuration { get; set; }
-
-        private static TelegramBotManager _botManager;
-
-        // either "debug" or "relase"
-        private static string releaseMode = "release";
-
-        static void Main(string[] args)
+        private static void RegisteredDependencies( IServiceCollection serviceCollection )
         {
-            string fileName = $"cntBotSettings.{releaseMode}.json";
-            Settings.Initialize( new ConfigurationRootSettingsProvider( new ConfigurationBuilder().AddJsonFile( fileName ).Build() ) );
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            Settings settings = serviceProvider.GetService<IOptions<Settings>>().Value;
 
-            _botManager = new TelegramBotManager();
-            _botManager.StartupAsync().Wait();
+            ITelegramBotClient telegramBotClient = new TelegramBotClient( settings.BotIdSecret );
 
-            Thread.Sleep(Timeout.Infinite);
+            serviceCollection.AddSingleton<ITelegramBotClient>( telegramBotClient );
+            serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
+        }
 
-            _botManager.ShutdownAsync().Wait();
+        private static void ConfigureServices( IServiceCollection serviceCollection )
+        {
+            string debugFileName = $"cntBotSettings.debug.json";
+            string releaseFileName = $"cntBotSettings.release.json";
+
+            IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath( Directory.GetCurrentDirectory() )
+            .AddJsonFile( releaseFileName, optional: true )
+            .AddJsonFile( debugFileName, optional: true )
+            .Build();
+
+            serviceCollection.AddOptions();
+            serviceCollection.Configure<Settings>( configuration );
+
+            RegisteredDependencies( serviceCollection );
+        }
+
+        static async Task Main(string[] args)
+        {
+            IServiceCollection serviceCollection = new ServiceCollection();
+            ConfigureServices( serviceCollection );
+            
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+
+            await serviceProvider.GetService<ITelegramBotManager>().RunAsync();
         }
     }
 }

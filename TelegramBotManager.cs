@@ -1,18 +1,17 @@
 using System.Threading.Tasks;
 using System.Threading;
 using Telegram.Bot;
-using TheCountBot.Configuration;
 using Telegram.Bot.Args;
 using System.Linq;
 using System.Collections.Generic;
 using System;
 using TheCountBot.Models;
 using Telegram.Bot.Types.Enums;
-
+using Microsoft.Extensions.Options;
 
 namespace TheCountBot
 {
-    internal class TelegramBotManager
+    internal class TelegramBotManager : ITelegramBotManager
     {
         private ITelegramBotClient _botClient;
 
@@ -28,39 +27,41 @@ namespace TheCountBot
 
         private NumberStoreContext _context;
 
-        internal TelegramBotManager()
+        private readonly Settings _settings;
+
+        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
         {
-            _botClient = new TelegramBotClient( Settings.BotIdSecret );
+            _settings = settingsOptions.Value;
+
+            _botClient = telegramBotClient;
 
             _botClient.OnMessage += OnMessageReceivedAsync;
 
-            _stateTimer = new Timer(TimerFunc, null, Settings.TimerWaitTime, Settings.TimerWaitTime);
+            _stateTimer = new Timer(TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime);
 
-            _insultList = Settings.InsultsForMessingUpTheNumber;
+            _insultList = _settings.InsultsForMessingUpTheNumber;
 
-            _context = new NumberStoreContext( Settings.ConnectionString );
+            _context = new NumberStoreContext( _settings.ConnectionString );
         }
 
-        internal async Task StartupAsync()
+        public async Task RunAsync()
         {
             await SendMessageAsync("Welcome me, heathens").ConfigureAwait(false);
             _botClient.StartReceiving();
-        }
 
-        internal async Task ShutdownAsync()
-        {
-            await SendMessageAsync("Goodbye cruel world").ConfigureAwait(false);
+            Thread.Sleep(Timeout.Infinite);
+
             _botClient.StopReceiving();
         }
 
-        public void TimerFunc(object stateInfo)
+        private void TimerFunc(object stateInfo)
         {
             SendMessageAsync("I'm lonely...").Wait();
         }
 
         private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
         {
-            await _botClient.SendTextMessageAsync( Settings.MetaCountingChatId, message, mode ).ConfigureAwait( false );
+            await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode );
         }
 
         private async Task CalculateAndSendMistakesPerPersonAsync( List<NumberStore> list )
@@ -93,34 +94,34 @@ namespace TheCountBot
             } );
             messageToSend += "```";
 
-            await SendMessageAsync( messageToSend, ParseMode.Markdown ).ConfigureAwait( false );
+            await SendMessageAsync( messageToSend, ParseMode.Markdown );
         }
 
         private async Task HandleStatsCommandAsync()
         {
-            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync().ConfigureAwait( false ) ).ConfigureAwait( false );
+            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync() );
         }
 
-        private bool MoreRobustNumberCheck(string x)
+        private bool MoreRobustNumberCheck( string x )
         {
-            if (x.StartsWith("0")) return false;
+            if ( x.StartsWith( "0" ) ) return false;
 
             //potentially other checks...
 
             return true;
         }
 
-        private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
+        private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == Settings.MetaCountingChatId
+            if ( e.Message.Chat.Id == _settings.MetaCountingChatId
                     && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
             {
-                await HandleStatsCommandAsync().ConfigureAwait( false );
+                await HandleStatsCommandAsync();
                 return;
             }
 
-            if (e.Message.Chat.Id == Settings.CountingChatId)
+            if (e.Message.Chat.Id == _settings.CountingChatId)
             {
                 NumberStore record = new NumberStore 
                 {
@@ -141,7 +142,7 @@ namespace TheCountBot
                     record.Correct = false;
                     record.Number = -1;
 
-                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) ).ConfigureAwait( false );
+                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) );
 
                 }
                 else
@@ -152,27 +153,28 @@ namespace TheCountBot
                     record.Correct = true;
                     record.Number = number;
 
-                    await HandleCoolNumbersAsync( number, e.Message.From.Username ).ConfigureAwait( false );
+                    await HandleCoolNumbersAsync( number, e.Message.From.Username );
                 }
 
-                _stateTimer.Change(Settings.TimerWaitTime, Settings.TimerWaitTime);
-                await _context.AddRecordAsync( record ).ConfigureAwait( false );
+                _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
+                await _context.AddRecordAsync( record );
             }
         }
 
-        private bool IsSameDigits(int x)
+        private bool IsSameDigits( int x )
         {
             //not counting numbers less than 10
             if ( x < 10 ) return false;
             int firstDigit=x%10;
+
             while ( x > 0 ){
                 if ( x % 10 != firstDigit ) return false;
-                x/=10;
+                x /= 10;
             }
             return true;
         }
 
-        private bool IsPalindrome(int x)
+        private bool IsPalindrome( int x )
         {
             //not counting numbers less than 10
             if ( x < 10 ) return false;
@@ -183,31 +185,37 @@ namespace TheCountBot
             {
                 reverse*=10;
                 reverse+=x%10;
-                x/=10;
+                x /= 10;
             }
 
             return original == reverse;
         }
 
-        private bool Is1000(int x)
+        private bool Is1000( int x )
         {
             return x > 1000 && x % 1000 == 0;
         }
 
-        private async Task HandleCoolNumbersAsync(int x, string user )
+        private async Task HandleCoolNumbersAsync( int x, string user )
         {
-            if (IsSameDigits(x))
-                await SendMessageAsync($"YO {user}, {x} is made up of all {x%10}s!" ).ConfigureAwait( false );
-            else if (IsPalindrome(x))
-                await SendMessageAsync($"Hey, {user}! {x} is a palindrome!" ).ConfigureAwait( false );
-            else if (Is1000(x))
-                await SendMessageAsync($"AYYYYYY {user}" ).ConfigureAwait( false );
+            if ( IsSameDigits( x ) )
+            {
+                await SendMessageAsync( $"YO {user}, {x} is made up of all {x % 10}s!" );
+            }
+            else if ( IsPalindrome( x ) )
+            {
+                await SendMessageAsync( $"Hey, {user}! {x} is a palindrome!" );
+            }
+            else if ( Is1000( x ) )
+            {
+                await SendMessageAsync( $"AYYYYYY {user}" );
+            }
         }
 
         private string GetRandomInsultMessageForUser( string user )
         {
             int _randInt = _rng.Next( 0, _insultList.Count );
-            string message = _insultList[_randInt].Replace("{username}", user);
+            string message = _insultList[_randInt].Replace( "{username}", user );
 
             return message;
         }

@@ -24,7 +24,7 @@ namespace TheCountBot.Models
             List<NumberStore> result = new List<NumberStore>();
             using (MySqlConnection conn = GetConnection())
             {
-                await conn.OpenAsync().ConfigureAwait(false);
+                await conn.OpenAsync();
 
                 System.Console.WriteLine("Opened Database Connection");
 
@@ -42,7 +42,7 @@ namespace TheCountBot.Models
                     } );
                 }
 
-                await conn.CloseAsync().ConfigureAwait(false);
+                await conn.CloseAsync();
 
                 System.Console.WriteLine("Closed Database Connection");
             }
@@ -54,7 +54,7 @@ namespace TheCountBot.Models
         {
             using (MySqlConnection conn = GetConnection())
             {
-                await conn.OpenAsync().ConfigureAwait(false);
+                await conn.OpenAsync();
 
                 System.Console.WriteLine("Opened Database Connection");
 
@@ -64,9 +64,9 @@ namespace TheCountBot.Models
                 insertCommand.Parameters.AddWithValue("@correct", record.Correct);
                 insertCommand.Parameters.AddWithValue("@timestamp", record.Timestamp);
 
-                int rowsAffected = await insertCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+                int rowsAffected = await insertCommand.ExecuteNonQueryAsync();
                 
-                await conn.CloseAsync().ConfigureAwait(false);
+                await conn.CloseAsync();
 
                 System.Console.WriteLine("Closed Database Connection");
             }
