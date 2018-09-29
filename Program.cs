@@ -44,7 +44,7 @@ namespace TheCountBot
         static async Task Main(string[] args)
         {
             IServiceCollection serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
+            ConfigureServices( serviceCollection );
             
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 

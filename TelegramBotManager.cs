@@ -54,12 +54,6 @@ namespace TheCountBot
             _botClient.StopReceiving();
         }
 
-        // internal async Task ShutdownAsync()
-        // {
-        //     await SendMessageAsync("Goodbye cruel world").ConfigureAwait(false);
-        //     _botClient.StopReceiving();
-        // }
-
         private void TimerFunc(object stateInfo)
         {
             SendMessageAsync("I'm lonely...").Wait();
