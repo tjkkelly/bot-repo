@@ -102,16 +102,16 @@ namespace TheCountBot
             await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync() );
         }
 
-        private bool MoreRobustNumberCheck(string x)
+        private bool MoreRobustNumberCheck( string x )
         {
-            if (x.StartsWith("0")) return false;
+            if ( x.StartsWith( "0" ) ) return false;
 
             //potentially other checks...
 
             return true;
         }
 
-        private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
+        private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
         {
             System.Console.WriteLine("Message Received");
             if ( e.Message.Chat.Id == _settings.MetaCountingChatId
@@ -161,19 +161,20 @@ namespace TheCountBot
             }
         }
 
-        private bool IsSameDigits(int x)
+        private bool IsSameDigits( int x )
         {
             //not counting numbers less than 10
             if ( x < 10 ) return false;
             int firstDigit=x%10;
+
             while ( x > 0 ){
                 if ( x % 10 != firstDigit ) return false;
-                x/=10;
+                x /= 10;
             }
             return true;
         }
 
-        private bool IsPalindrome(int x)
+        private bool IsPalindrome( int x )
         {
             //not counting numbers less than 10
             if ( x < 10 ) return false;
@@ -184,31 +185,37 @@ namespace TheCountBot
             {
                 reverse*=10;
                 reverse+=x%10;
-                x/=10;
+                x /= 10;
             }
 
             return original == reverse;
         }
 
-        private bool Is1000(int x)
+        private bool Is1000( int x )
         {
             return x > 1000 && x % 1000 == 0;
         }
 
-        private async Task HandleCoolNumbersAsync(int x, string user )
+        private async Task HandleCoolNumbersAsync( int x, string user )
         {
-            if (IsSameDigits(x))
-                await SendMessageAsync($"YO {user}, {x} is made up of all {x%10}s!" );
-            else if (IsPalindrome(x))
-                await SendMessageAsync($"Hey, {user}! {x} is a palindrome!" );
-            else if (Is1000(x))
-                await SendMessageAsync($"AYYYYYY {user}" );
+            if ( IsSameDigits( x ) )
+            {
+                await SendMessageAsync( $"YO {user}, {x} is made up of all {x % 10}s!" );
+            }
+            else if ( IsPalindrome( x ) )
+            {
+                await SendMessageAsync( $"Hey, {user}! {x} is a palindrome!" );
+            }
+            else if ( Is1000( x ) )
+            {
+                await SendMessageAsync( $"AYYYYYY {user}" );
+            }
         }
 
         private string GetRandomInsultMessageForUser( string user )
         {
             int _randInt = _rng.Next( 0, _insultList.Count );
-            string message = _insultList[_randInt].Replace("{username}", user);
+            string message = _insultList[_randInt].Replace( "{username}", user );
 
             return message;
         }
