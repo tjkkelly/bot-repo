@@ -13,8 +13,6 @@ namespace TheCountBot
 {
     class Program
     {
-        private static ReleaseMode releaseMode = ReleaseMode.Debug;
-
         private static void RegisteredDependencies( IServiceCollection serviceCollection )
         {
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
@@ -28,11 +26,13 @@ namespace TheCountBot
 
         private static void ConfigureServices( IServiceCollection serviceCollection )
         {
-            string fileName = $"cntBotSettings.{releaseMode.ToString()}.json";
+            string debugFileName = $"cntBotSettings.debug.json";
+            string releaseFileName = $"cntBotSettings.release.json";
 
             IConfiguration configuration = new ConfigurationBuilder()
             .SetBasePath( Directory.GetCurrentDirectory() )
-            .AddJsonFile( fileName )
+            .AddJsonFile( releaseFileName, optional: true )
+            .AddJsonFile( debugFileName, optional: true )
             .Build();
 
             serviceCollection.AddOptions();
@@ -50,11 +50,5 @@ namespace TheCountBot
 
             await serviceProvider.GetService<ITelegramBotManager>().RunAsync();
         }
-    }
-
-    internal enum ReleaseMode
-    {
-        Debug = 0,
-        Release = 1
     }
 }
