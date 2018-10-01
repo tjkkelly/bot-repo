@@ -200,15 +200,15 @@ namespace TheCountBot
         {
             if ( IsSameDigits( x ) )
             {
-                await SendMessageAsync( $"YO {user}, {x} is made up of all {x % 10}s!" );
+                await SendMessageAsync( $"YO @{user}, {x} is made up of all {x % 10}s!" );
             }
             else if ( IsPalindrome( x ) )
             {
-                await SendMessageAsync( $"Hey, {user}! {x} is a palindrome!" );
+                await SendMessageAsync( $"Hey, @{user}! {x} is a palindrome!" );
             }
             else if ( Is1000( x ) )
             {
-                await SendMessageAsync( $"AYYYYYY {user}" );
+                await SendMessageAsync( $"AYYYYYY @{user}" );
             }
         }
 
