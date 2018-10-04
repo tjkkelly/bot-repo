@@ -5,9 +5,11 @@ using Telegram.Bot.Args;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using TheCountBot.Models;
+using TheCountBot.Data.Models;
 using Telegram.Bot.Types.Enums;
 using Microsoft.Extensions.Options;
+using TheCountBot.Data;
+using TheCountBot.Data.Repositories;
 
 namespace TheCountBot
 {
@@ -25,28 +27,27 @@ namespace TheCountBot
 
         private Random _rng = new Random();
 
-        private NumberStoreContext _context;
-
         private readonly Settings _settings;
 
-        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
+        private IServiceProvider _serviceProvider;
+
+        private readonly INumberStoreRepository _numberStoreRepository;
+
+        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, INumberStoreRepository numberStoreRepository )
         {
             _settings = settingsOptions.Value;
-
             _botClient = telegramBotClient;
-
             _botClient.OnMessage += OnMessageReceivedAsync;
-
             _stateTimer = new Timer(TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime);
-
             _insultList = _settings.InsultsForMessingUpTheNumber;
-
-            _context = new NumberStoreContext( _settings.ConnectionString );
+            _numberStoreRepository = numberStoreRepository;
         }
 
-        public async Task RunAsync()
+        public async Task RunAsync( IServiceProvider serviceProvider )
         {
-            await SendMessageAsync("Welcome me, heathens").ConfigureAwait(false);
+            _serviceProvider = serviceProvider;
+
+            await SendMessageAsync( "Welcome me, heathens" );
             _botClient.StartReceiving();
 
             Thread.Sleep(Timeout.Infinite);
@@ -64,12 +65,12 @@ namespace TheCountBot
             await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode );
         }
 
-        private async Task CalculateAndSendMistakesPerPersonAsync( List<NumberStore> list )
+        private async Task CalculateAndSendMistakesPerPersonAsync( List<MessageEntry> list )
         {
             var totalMistakesByUser = new Dictionary<String, int>();
             var totalMessagesByUser = new Dictionary<String, int>();
 
-            foreach( NumberStore record in list ) {
+            foreach( MessageEntry record in list ) {
                 if ( !totalMistakesByUser.ContainsKey( record.Username ) )
                 {
                     totalMistakesByUser[record.Username] = 0;
@@ -99,7 +100,7 @@ namespace TheCountBot
 
         private async Task HandleStatsCommandAsync()
         {
-            await CalculateAndSendMistakesPerPersonAsync( await _context.GetHistoryAsync() );
+            await CalculateAndSendMistakesPerPersonAsync( await _numberStoreRepository.GetHistoryAsync( _serviceProvider ) );
         }
 
         private bool MoreRobustNumberCheck( string x )
@@ -123,10 +124,10 @@ namespace TheCountBot
 
             if (e.Message.Chat.Id == _settings.CountingChatId)
             {
-                NumberStore record = new NumberStore 
+                MessageEntry messageEntry = new MessageEntry
                 {
                     Username = e.Message.From.Username == null ? e.Message.From.FirstName : e.Message.From.Username,
-                    Timestamp = DateTime.UtcNow.ToString()
+                    Timestamp = DateTime.UtcNow
                 };
 
                 bool isNumberValue = int.TryParse(e.Message.Text, out int number);
@@ -139,25 +140,24 @@ namespace TheCountBot
                     _lastUserToSendCorrect = null;
                     _lastNumber = null;
 
-                    record.Correct = false;
-                    record.Number = -1;
+                    messageEntry.Correct = false;
+                    messageEntry.Number = -1;
 
                     await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) );
-
                 }
                 else
                 {
                     _lastNumber = number;
                     _lastUserToSendCorrect = e.Message.From.Username;
 
-                    record.Correct = true;
-                    record.Number = number;
+                    messageEntry.Correct = true;
+                    messageEntry.Number = number;
 
                     await HandleCoolNumbersAsync( number, e.Message.From.Username );
                 }
 
                 _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
-                await _context.AddRecordAsync( record );
+                await _numberStoreRepository.AddNewMessageEntryAsync( _serviceProvider, messageEntry );
             }
         }
 

@@ -25,4 +25,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TheCountBot.Data\TheCountBot.Data.csproj" />
+  </ItemGroup>
 </Project>
