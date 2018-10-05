@@ -17,5 +17,7 @@ namespace TheCountBot
         public List<string> InsultsForMessingUpTheNumber{ get; set; }
 
         public string ConnectionString{ get; set; }
+
+        public string SqlConnectionStringReadWrite { get; set; }
     }
 }
