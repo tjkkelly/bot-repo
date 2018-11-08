@@ -2,3 +2,4 @@
 **/bin/*
 cntBotSettings.*.json
 .DS_Store
+.vs*
