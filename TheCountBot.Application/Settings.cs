@@ -19,5 +19,7 @@ namespace TheCountBot
         public string ConnectionString{ get; set; }
 
         public string SqlConnectionStringReadWrite { get; set; }
+
+        public bool IsDebug { get; set; }
     }
 }
