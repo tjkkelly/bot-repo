@@ -149,7 +149,6 @@ namespace TheCountBot
             double totalErrorShare = ((double)totalMistakes) / countOfTotalMistakes * 100;
 
             messageToSend += String.Format($"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate,-20:0.##} -- {totalErrorShare,-20:0.##}\n");
-
             messageToSend += "```";
             return messageToSend;
         }
