@@ -8,8 +8,8 @@ using System;
 using TheCountBot.Data.Models;
 using Telegram.Bot.Types.Enums;
 using Microsoft.Extensions.Options;
-using TheCountBot.Data;
-using TheCountBot.Data.Models.Enums;
+using TheCountBot.Application.Models;
+using TheCountBot.Application.Models.Enums;
 using TheCountBot.Data.Repositories;
 
 namespace TheCountBot
@@ -77,7 +77,7 @@ namespace TheCountBot
                 int totalMistakes = totalMistakesByUser[username];
                 double errorRate = ((double) totalMistakes) / totalMessagesSent * 100;
 
-                messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -20} -- {totalMistakes, -20} -- {errorRate:0.##, -20}\n");
+                messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -20} -- {totalMistakes, -20} -- {errorRate,-20:0.##}\n");
             } );
             messageToSend += "```";
 
@@ -100,19 +100,19 @@ namespace TheCountBot
                 double errorRate = ((double)totalMistakes) / totalMessagesSent * 100;
                 mistakeRatesByUser.Add(username, errorRate);
 
-                messageToSend += String.Format($"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate:0.##,-20}\n");
+                messageToSend += String.Format($"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate,-20:0.##}\n");
             });
             messageToSend += "\n";
             var relativeErrorRates = calculateRelativeMistakeRatesByUser(mistakeRatesByUser);
-            messageToSend += String.Format($"```\n{"Username",-20} -- {"Total Message Percentage",-20} -- {"Total Error Rate",-20} -- {"Relative Error Rate",-20}\n");
+            messageToSend += String.Format($"\n{"Username",-20} -- {"Total Message Percentage",-30} -- {"Total Error Rate",-20} -- {"Relative Error Rate",-20}\n");
             totalMistakesByUser.Keys.ToList().ForEach(username => {
                 int totalMessagesSent = totalMessagesByUser[username];
                 int totalMistakes = totalMistakesByUser[username];
-                double totalMessagePercentage = ((double)totalMessagesSent) / countOfTotalMessages;
-                double totalErrorRate = ((double)totalMistakes) / countOfTotalMistakes;
+                double totalMessagePercentage = ((double)totalMessagesSent) / countOfTotalMessages * 100;
+                double totalErrorRate = ((double)totalMistakes) / countOfTotalMistakes * 100;
                 double relativeError = relativeErrorRates[username];
 
-                messageToSend += String.Format($"{username,-20} -- {totalMessagePercentage:0.##,-20} -- {totalErrorRate:0.##,-20} -- {relativeError:0.##,-20}\n");
+                messageToSend += String.Format($"{username,-20} -- {totalMessagePercentage,-30:0.##} -- {totalErrorRate,-20:0.##} -- {relativeError,-20:0.##}\n");
             });
             messageToSend += "```";
 
@@ -148,7 +148,7 @@ namespace TheCountBot
             double errorRate = ((double)totalMistakes) / totalMessagesSent * 100;
             double totalErrorShare = ((double)totalMistakes) / countOfTotalMistakes * 100;
 
-            messageToSend += String.Format($"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate:0.##,-20} -- {totalErrorShare:0.##,-20}\n");
+            messageToSend += String.Format($"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate,-20:0.##} -- {totalErrorShare,-20:0.##}\n");
 
             messageToSend += "```";
             return messageToSend;
@@ -185,7 +185,7 @@ namespace TheCountBot
             if ( e.Message.Chat.Id == _settings.MetaCountingChatId )
             {
                 BotCommand command = new BotCommand(e.Message.Text);
-                if (command.commandType != Data.Models.Enums.BotCommandEnum.noCommand)
+                if (command.commandType != BotCommandEnum.noCommand)
                 {
                     await HandleStatsCommandAsync(command, e.Message.From.Username);
                     return;
@@ -201,7 +201,10 @@ namespace TheCountBot
                 };
 
                 bool isNumberValue = int.TryParse(e.Message.Text, out int number);
-                isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
+                if(e.Message.Text != null)
+                {
+                    isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
+                }
 
                 if ( !isNumberValue
                         || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ))
@@ -328,15 +331,15 @@ namespace TheCountBot
 
         private double getMinimumErrorRate( Dictionary<String, double> mistakeRates )
         {
-            double error = 101;
+            double minimumErrorPercentage = 101;
             mistakeRates.Keys.ToList().ForEach (username =>
             {
-                if(mistakeRates[username] < error)
+                if(mistakeRates[username] < minimumErrorPercentage && mistakeRates[username] < 0.000001 )
                 {
-                    error = mistakeRates[username];
+                    minimumErrorPercentage = mistakeRates[username];
                 }
             }) ;
-            return error;
+            return minimumErrorPercentage;
         }
 
         private string GetRandomInsultMessageForUser( string user )

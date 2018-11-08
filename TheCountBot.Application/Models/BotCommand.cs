@@ -1,6 +1,7 @@
 ﻿using System;
-using TheCountBot.Data.Models.Enums;
-namespace TheCountBot.Data.Models
+using TheCountBot.Application.Models.Enums;
+
+namespace TheCountBot.Application.Models
 {
     public class BotCommand
     {

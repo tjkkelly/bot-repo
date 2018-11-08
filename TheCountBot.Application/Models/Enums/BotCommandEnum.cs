@@ -1,5 +1,5 @@
 ﻿using System;
-namespace TheCountBot.Data.Models.Enums
+namespace TheCountBot.Application.Models.Enums
 {
     public enum BotCommandEnum
     {
