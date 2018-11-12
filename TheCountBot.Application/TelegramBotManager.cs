@@ -320,7 +320,7 @@ namespace TheCountBot
         private Dictionary<String, double> calculateRelativeMistakeRatesByUser( Dictionary<String, double> mistakeRates )
         {
             Dictionary<String, double> relativeRates = new Dictionary<string, double>();
-            double minimumError = getMinimumErrorRate( mistakeRates );
+            double minimumError = getPositiveMinimumNonZeroErrorRate( mistakeRates );
             mistakeRates.Keys.ToList().ForEach( username =>
             {
                 relativeRates.Add( username, mistakeRates[username] / minimumError );
@@ -328,7 +328,7 @@ namespace TheCountBot
             return relativeRates;
         }
 
-        private double getMinimumErrorRate( Dictionary<String, double> mistakeRates )
+        private double getPositiveMinimumNonZeroErrorRate( Dictionary<String, double> mistakeRates )
         {
             double minimumErrorPercentage = 101;
             mistakeRates.Keys.ToList().ForEach (username =>
