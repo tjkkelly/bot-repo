@@ -8,7 +8,8 @@ using System;
 using TheCountBot.Data.Models;
 using Telegram.Bot.Types.Enums;
 using Microsoft.Extensions.Options;
-using TheCountBot.Data;
+using TheCountBot.Application.Models;
+using TheCountBot.Application.Models.Enums;
 using TheCountBot.Data.Repositories;
 
 namespace TheCountBot
@@ -38,7 +39,7 @@ namespace TheCountBot
             _settings = settingsOptions.Value;
             _botClient = telegramBotClient;
             _botClient.OnMessage += OnMessageReceivedAsync;
-            _stateTimer = new Timer(TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime);
+            _stateTimer = new Timer( TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime );
             _insultList = _settings.InsultsForMessingUpTheNumber;
             _numberStoreRepository = numberStoreRepository;
         }
@@ -50,14 +51,14 @@ namespace TheCountBot
             await SendMessageAsync( "Welcome me, heathens" );
             _botClient.StartReceiving();
 
-            Thread.Sleep(Timeout.Infinite);
+            Thread.Sleep( Timeout.Infinite );
 
             _botClient.StopReceiving();
         }
 
         private void TimerFunc(object stateInfo)
         {
-            SendMessageAsync("I'm lonely...").Wait();
+            SendMessageAsync( "I'm lonely..." ).Wait();
         }
 
         private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
@@ -65,42 +66,107 @@ namespace TheCountBot
             await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode );
         }
 
-        private async Task CalculateAndSendMistakesPerPersonAsync( List<MessageEntry> list )
+        private async Task CalculateAndSendLimitedStatsPerPersonAsync( List<MessageEntry> list )
         {
-            var totalMistakesByUser = new Dictionary<String, int>();
-            var totalMessagesByUser = new Dictionary<String, int>();
+            var totalMistakesByUser = getMistakesByUser(list);
+            var totalMessagesByUser = getMessagesByUser(list);
 
-            foreach( MessageEntry record in list ) {
-                if ( !totalMistakesByUser.ContainsKey( record.Username ) )
-                {
-                    totalMistakesByUser[record.Username] = 0;
-                    totalMessagesByUser[record.Username] = 0;
-                }
-                if ( !record.Correct )
-                {
-                    totalMistakesByUser[record.Username] += 1;
-                }
-                totalMessagesByUser[record.Username] += 1;
-            }
-
-            int countOfTotalMistakes = totalMistakesByUser.Keys.ToList().Aggregate(0, (acc, key) => acc + totalMistakesByUser[key]);
-
-            string messageToSend = String.Format($"```\n{"Username", -20} -- {"Total Messages Sent", -30} -- {"Number Of Mistakes", -30} -- {"Percent Of Total Mistakes", -30}\n");
+            string messageToSend = String.Format( $"```\n{"Username", -20} -- {"Total Messages Sent", -20} -- {"Number Of Mistakes", -20} -- {"Error Rate", -20}\n" );
             totalMistakesByUser.Keys.ToList().ForEach( username => {
                 int totalMessagesSent = totalMessagesByUser[username];
                 int totalMistakes = totalMistakesByUser[username];
-                double percent = ((double) totalMistakes) / countOfTotalMistakes * 100;
+                double errorRate = ((double) totalMistakes) / totalMessagesSent * 100;
 
-                messageToSend += String.Format($"{username, -20} -- {totalMessagesSent, -30} -- {totalMistakes, -30} -- {percent, -30}\n");
+                messageToSend += String.Format( $"{username, -20} -- {totalMessagesSent, -20} -- {totalMistakes, -20} -- {errorRate,-20:0.##}\n" );
             } );
             messageToSend += "```";
 
             await SendMessageAsync( messageToSend, ParseMode.Markdown );
         }
 
-        private async Task HandleStatsCommandAsync()
+        private async Task CalculateAndSendFullStatsPerPersonAsync( List<MessageEntry> list )
         {
-            await CalculateAndSendMistakesPerPersonAsync( await _numberStoreRepository.GetHistoryAsync( _serviceProvider ) );
+            var totalMistakesByUser = getMistakesByUser(list);
+            var totalMessagesByUser = getMessagesByUser(list);
+            var mistakeRatesByUser = new Dictionary<String, double>();
+
+            int countOfTotalMistakes = totalMistakesByUser.Keys.ToList().Aggregate(0, (acc, key) => acc + totalMistakesByUser[key]);
+            int countOfTotalMessages = totalMessagesByUser.Keys.ToList().Aggregate(0, (acc, key) => acc + totalMessagesByUser[key]);
+
+            string messageToSend = String.Format( $"```\n{"Username",-20} -- {"Total Messages Sent",-20} -- {"Number Of Mistakes",-20} -- {"Error Rate",-20}\n" );
+            totalMistakesByUser.Keys.ToList().ForEach(username => {
+                int totalMessagesSent = totalMessagesByUser[username];
+                int totalMistakes = totalMistakesByUser[username];
+                double errorRate = ((double)totalMistakes) / totalMessagesSent * 100;
+                mistakeRatesByUser.Add(username, errorRate);
+
+                messageToSend += String.Format( $"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate,-20:0.##}\n" );
+            });
+            messageToSend += "\n";
+            var relativeErrorRates = calculateRelativeMistakeRatesByUser(mistakeRatesByUser);
+            messageToSend += String.Format( $"\n{"Username",-20} -- {"Total Message Percentage",-30} -- {"Total Error Rate",-20} -- {"Relative Error Rate",-20}\n" );
+            totalMistakesByUser.Keys.ToList().ForEach(username => {
+                int totalMessagesSent = totalMessagesByUser[username];
+                int totalMistakes = totalMistakesByUser[username];
+                double totalMessagePercentage = ((double)totalMessagesSent) / countOfTotalMessages * 100;
+                double totalErrorRate = ((double)totalMistakes) / countOfTotalMistakes * 100;
+                double relativeError = relativeErrorRates[username];
+
+                messageToSend += String.Format( $"{username,-20} -- {totalMessagePercentage,-30:0.##} -- {totalErrorRate,-20:0.##} -- {relativeError,-20:0.##}\n" );
+            });
+            messageToSend += "```";
+
+            await SendMessageAsync(messageToSend, ParseMode.Markdown);
+        }
+
+        private async Task CalculateAndSendIndividualStats( List<MessageEntry> list, String username )
+        {
+            var totalMistakesByUser = getMistakesByUser( list );
+            var totalMessagesByUser = getMessagesByUser( list );
+
+            String messageToSend = "";
+            if( !totalMessagesByUser.ContainsKey( username ) )
+            {
+                messageToSend = "You haven't counted yet!";
+            }
+            else
+            {
+                messageToSend = BuildIndividualStatsMessage( totalMistakesByUser, totalMessagesByUser, username );
+            }
+
+            await SendMessageAsync( messageToSend, ParseMode.Markdown );
+        }
+
+        private String BuildIndividualStatsMessage( Dictionary<String, int> totalMistakesByUser, Dictionary<String, int> totalMessagesByUser, String username )
+        {
+            int countOfTotalMistakes = totalMistakesByUser.Keys.ToList().Aggregate(0, ( acc, key ) => acc + totalMistakesByUser[key]);
+
+            string messageToSend = String.Format( $"```\n{"Username",-20} -- {"Total Messages",-20} -- {"Number Of Mistakes",-20} -- {"Error Rate",-20} -- {"Total Error Percentage",-20}\n" );
+
+            int totalMessagesSent = totalMessagesByUser[username];
+            int totalMistakes = totalMistakesByUser[username];
+            double errorRate = ((double)totalMistakes) / totalMessagesSent * 100;
+            double totalErrorShare = ((double)totalMistakes) / countOfTotalMistakes * 100;
+
+            messageToSend += String.Format( $"{username,-20} -- {totalMessagesSent,-20} -- {totalMistakes,-20} -- {errorRate,-20:0.##} -- {totalErrorShare,-20:0.##}\n" );
+            messageToSend += "```";
+            return messageToSend;
+        }
+
+        private async Task HandleStatsCommandAsync( BotCommand command, String user )
+        {
+            switch( command.commandType )
+            {
+                case BotCommandEnum.fullStats:
+                    await CalculateAndSendFullStatsPerPersonAsync( await _numberStoreRepository.GetHistoryAsync( _serviceProvider ) );
+                    break;
+                case BotCommandEnum.limitedStats:
+                    await CalculateAndSendLimitedStatsPerPersonAsync( await _numberStoreRepository.GetHistoryAsync( _serviceProvider ) );
+                    break;
+                case BotCommandEnum.individualStats:
+                    await CalculateAndSendIndividualStats( await _numberStoreRepository.GetHistoryAsync( _serviceProvider ), user );
+                    break;
+            }
         }
 
         private bool MoreRobustNumberCheck( string x )
@@ -115,11 +181,14 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == _settings.MetaCountingChatId
-                    && (e.Message.Text == "/stats" || e.Message.Text == "/stats@the_cnt_bot") )
+            if ( e.Message.Chat.Id == _settings.MetaCountingChatId )
             {
-                await HandleStatsCommandAsync();
-                return;
+                BotCommand command = new BotCommand(e.Message.Text);
+                if (command.commandType != BotCommandEnum.noCommand)
+                {
+                    await HandleStatsCommandAsync( command, e.Message.From.Username );
+                    return;
+                }
             }
 
             if (e.Message.Chat.Id == _settings.CountingChatId)
@@ -130,12 +199,15 @@ namespace TheCountBot
                     Timestamp = DateTime.UtcNow
                 };
 
-                bool isNumberValue = int.TryParse(e.Message.Text, out int number);
-                isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
+                bool isNumberValue = int.TryParse( e.Message.Text, out int number );
+                if( e.Message.Text != null )
+                {
+                    isNumberValue &= MoreRobustNumberCheck( e.Message.Text );
+                }
 
                 if ( !isNumberValue
-                        || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ))
-                        || ((_lastNumber != null) && number != _lastNumber + 1 ) )
+                        || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ) )
+                        || ( ( _lastNumber != null) && number != _lastNumber + 1 ) )
                 {
                     _lastUserToSendCorrect = null;
                     _lastNumber = null;
@@ -156,7 +228,7 @@ namespace TheCountBot
                     await HandleCoolNumbersAsync( number, e.Message.From.Username );
                 }
 
-                _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
+                _stateTimer.Change( _settings.TimerWaitTime, _settings.TimerWaitTime );
                 await _numberStoreRepository.AddNewMessageEntryAsync( _serviceProvider, messageEntry );
             }
         }
@@ -210,6 +282,63 @@ namespace TheCountBot
             {
                 await SendMessageAsync( $"AYYYYYY @{user}" );
             }
+        }
+
+        private Dictionary<String,int> getMistakesByUser( List<MessageEntry> list )
+        {
+            var totalMistakesByUser = new Dictionary<String, int>();
+
+            foreach ( MessageEntry record in list )
+            {
+                if ( !totalMistakesByUser.ContainsKey( record.Username ) )
+                {
+                    totalMistakesByUser[record.Username] = 0;
+                }
+                if ( !record.Correct )
+                {
+                    totalMistakesByUser[record.Username] += 1;
+                }
+            }
+            return totalMistakesByUser;
+        }
+
+        private Dictionary<String,int> getMessagesByUser( List<MessageEntry> list )
+        {
+            var totalMessagesByUser = new Dictionary<String, int>();
+
+            foreach  ( MessageEntry record in list )
+            {
+                if ( !totalMessagesByUser.ContainsKey( record.Username ) )
+                {
+                    totalMessagesByUser[record.Username] = 0;
+                }
+                totalMessagesByUser[record.Username] += 1;
+            }
+            return totalMessagesByUser;
+        }
+
+        private Dictionary<String, double> calculateRelativeMistakeRatesByUser( Dictionary<String, double> mistakeRates )
+        {
+            Dictionary<String, double> relativeRates = new Dictionary<string, double>();
+            double minimumError = getMinimumErrorRate( mistakeRates );
+            mistakeRates.Keys.ToList().ForEach( username =>
+            {
+                relativeRates.Add( username, mistakeRates[username] / minimumError );
+            });
+            return relativeRates;
+        }
+
+        private double getMinimumErrorRate( Dictionary<String, double> mistakeRates )
+        {
+            double minimumErrorPercentage = 101;
+            mistakeRates.Keys.ToList().ForEach (username =>
+            {
+                if( mistakeRates[username] < minimumErrorPercentage && mistakeRates[username] < 0.000001 )
+                {
+                    minimumErrorPercentage = mistakeRates[username];
+                }
+            }) ;
+            return minimumErrorPercentage;
         }
 
         private string GetRandomInsultMessageForUser( string user )

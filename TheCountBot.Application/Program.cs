@@ -28,7 +28,17 @@ namespace TheCountBot
             serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
 
-            serviceCollection.AddDbContext<NumberStoreContext>( options => options.UseSqlServer( settings.SqlConnectionStringReadWrite ), ServiceLifetime.Transient );
+            serviceCollection.AddDbContext<NumberStoreContext>( options => 
+            {
+                if ( settings.IsDebug )
+                {
+                    options.UseInMemoryDatabase( databaseName: "doesntMatter" );
+                }
+                else
+                {
+                    options.UseSqlServer( settings.SqlConnectionStringReadWrite );
+                }
+            }, ServiceLifetime.Transient );
         }
 
         private static void ConfigureServices( IServiceCollection serviceCollection )
