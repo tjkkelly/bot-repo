@@ -333,7 +333,7 @@ namespace TheCountBot
             double minimumErrorPercentage = 101;
             mistakeRates.Keys.ToList().ForEach (username =>
             {
-                if( mistakeRates[username] < minimumErrorPercentage && mistakeRates[username] < 0.000001 )
+                if( mistakeRates[username] < minimumErrorPercentage && mistakeRates[username] > 0.0001 )
                 {
                     minimumErrorPercentage = mistakeRates[username];
                 }
