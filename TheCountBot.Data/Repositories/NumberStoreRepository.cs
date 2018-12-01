@@ -1,5 +1,3 @@
-using TheCountBot.Data;
-using System;
 using System.Threading.Tasks;
 using TheCountBot.Data.Models;
 using System.Collections.Generic;
@@ -9,24 +7,27 @@ namespace TheCountBot.Data.Repositories
 {
     public class NumberStoreRepository : INumberStoreRepository
     {
-        private NumberStoreContext GetNumberStoreContext( IServiceProvider serviceProvider )
+        private readonly NumberStoreContext _numberStoreContext;
+
+        public NumberStoreRepository( NumberStoreContext numberStoreContext )
         {
-            return ( NumberStoreContext ) serviceProvider.GetService( typeof( NumberStoreContext ) );
+            _numberStoreContext = numberStoreContext;
         }
 
-        public async Task AddNewMessageEntryAsync( IServiceProvider serviceProvider, MessageEntry messageEntry )
+        public async Task AddNewMessageEntryAsync( MessageEntry messageEntry )
         {
-            NumberStoreContext context = GetNumberStoreContext( serviceProvider );
+            if ( !messageEntry.Correct )
+            {
+                messageEntry.Number = -1;
+            }
 
-            context.Add( messageEntry );
-            await context.SaveChangesAsync();
+            _numberStoreContext.Add( messageEntry );
+            await _numberStoreContext.SaveChangesAsync();
         }
 
-        public Task<List<MessageEntry>> GetHistoryAsync( IServiceProvider serviceProvider )
+        public Task<List<MessageEntry>> GetHistoryAsync()
         {
-            NumberStoreContext context = GetNumberStoreContext( serviceProvider );
-            
-            return Task.FromResult( context.MessageEntries.OrderBy( m => m.Timestamp ).ToList() );         
+            return Task.FromResult( _numberStoreContext.MessageEntries.OrderBy( m => m.Timestamp ).ToList() );         
         }
     }
 }
