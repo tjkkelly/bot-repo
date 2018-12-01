@@ -8,6 +8,7 @@
     <Folder Include="wwwroot\" />
     <Folder Include="Requests\" />
     <Folder Include="Implementations\" />
+    <Folder Include="ApiResponses\" />
   </ItemGroup>
 
   <ItemGroup>
