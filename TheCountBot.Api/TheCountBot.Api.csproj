@@ -7,6 +7,7 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
     <Folder Include="Requests\" />
+    <Folder Include="Implementations\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,14 +17,15 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="5.1.0" />
+    <PackageReference Include="Telegram.Bot" Version="14.10.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="cntBotSettings.debug.json" />
-  </ItemGroup>
+  
   <ItemGroup>
     <None Include="cntBotSettings.debug.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TheCountBot.Core\TheCountBot.Core.csproj" />
   </ItemGroup>
 </Project>
