@@ -7,6 +7,7 @@
     <PackageReference Include="MediatR" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Factories\" />
     <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>
