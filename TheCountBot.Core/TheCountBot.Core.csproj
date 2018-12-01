@@ -9,5 +9,9 @@
   <ItemGroup>
     <Folder Include="Factories\" />
     <Folder Include="Interfaces\" />
+    <Folder Include="Commands\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TheCountBot.Data\TheCountBot.Data.csproj" />
   </ItemGroup>
 </Project>
