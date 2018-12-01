@@ -1,9 +1,7 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace TheCountBot
-{  
+{
     public class Settings
     {
         public string BotIdSecret{ get; set; }

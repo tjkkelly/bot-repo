@@ -19,8 +19,6 @@
     <None Update="cntBotSettings.release.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Update="cntBotSettings.debug.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -8,8 +8,8 @@ namespace TheCountBot.Api
         public static void Main( string[] args )
         {
             CreateWebHostBuilder( args )
-            .Build()
-            .Run();
+                .Build()
+                .Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder( string[] args ) =>

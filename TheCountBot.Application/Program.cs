@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Threading;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using TheCountBot.Data.Models;
-using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
