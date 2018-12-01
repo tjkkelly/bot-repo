@@ -8,9 +8,17 @@ namespace TheCountBot.Api
 {
     public class Startup
     {
-        public Startup( IConfiguration configuration )
+        public Startup( IHostingEnvironment hostingEnvironment )
         {
-            Configuration = configuration;
+            string debugFileName = $"cntBotSettings.debug.json";
+            string releaseFileName = $"cntBotSettings.release.json";
+
+            var configurationBuilder = new ConfigurationBuilder()
+                .SetBasePath( hostingEnvironment.ContentRootPath )
+                .AddJsonFile( releaseFileName, optional: true )
+                .AddJsonFile( debugFileName, optional: true );
+
+            Configuration = configurationBuilder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -22,6 +30,7 @@ namespace TheCountBot.Api
                 .AddMvc()
                 .SetCompatibilityVersion( CompatibilityVersion.Latest );
 
+            services.AddOptions();
             services.Configure<Settings>( Configuration );
         }
 
