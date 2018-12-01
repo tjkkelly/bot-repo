@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using MediatR;
 
 namespace TheCountBot.Api
 {
@@ -33,6 +34,8 @@ namespace TheCountBot.Api
 
             services.AddOptions();
             services.Configure<Settings>( Configuration );
+
+            services.AddMediatR();
 
             services.AddSwaggerGen(c =>
             {
