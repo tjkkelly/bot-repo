@@ -20,5 +20,10 @@ namespace TheCountBot.Api.Implementations
         {
             await _telegramBotClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, Telegram.Bot.Types.Enums.ParseMode.Default );
         }
+
+        public async Task SendMonospacedMessageAsync( string message )
+        {
+            await _telegramBotClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, Telegram.Bot.Types.Enums.ParseMode.Markdown );
+        }
     }
 }
