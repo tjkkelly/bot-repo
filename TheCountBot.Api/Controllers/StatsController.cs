@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using TheCountBot.Api.ApiResponses;
 using TheCountBot.Core.DataModels;
 using TheCountBot.Core.Queries;
 
@@ -19,7 +20,7 @@ namespace TheCountBot.Api.Controllers
         }
 
         [HttpGet]
-        public async Task NewAllStatsCommandAsync()
+        public async Task<AllUserStatisticsResponse> NewAllStatsCommandAsync()
         {
             IReadOnlyList<UserMessage> allUserMessages = await _mediator.Send( new AllMessageHistoryQuery() );
             IReadOnlyList<UserStatistics> usersStatistics = await _mediator.Send( new StatsByUserQuery
@@ -27,6 +28,10 @@ namespace TheCountBot.Api.Controllers
                 UsersMessages = allUserMessages
             });
 
+            return new AllUserStatisticsResponse
+            {
+                UsersStatistics = usersStatistics
+            };
         }
 
         [HttpGet, Route( "{username}" )]
