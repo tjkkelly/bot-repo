@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -22,11 +22,7 @@ namespace TheCountBot.Api.Controllers
         [HttpGet]
         public async Task<AllUserStatisticsResponse> NewAllStatsCommandAsync()
         {
-            IReadOnlyList<UserMessage> allUserMessages = await _mediator.Send( new AllMessageHistoryQuery() );
-            IReadOnlyList<UserStatistics> usersStatistics = await _mediator.Send( new StatsByUserQuery
-            {
-                UsersMessages = allUserMessages
-            });
+            IReadOnlyList<UserStatistics> usersStatistics = await GetAllUsersStatisticAsync();
 
             return new AllUserStatisticsResponse
             {
@@ -35,9 +31,25 @@ namespace TheCountBot.Api.Controllers
         }
 
         [HttpGet, Route( "{username}" )]
-        public Task<bool> NewUserStatsCommandAsync( [FromRoute] string username )
+        public async Task<SingleUserStatisticsResponse> NewUserStatsCommandAsync( [FromRoute] string username )
         {
-            throw new NotImplementedException();
+            IReadOnlyList<UserStatistics> usersStatistics = await GetAllUsersStatisticAsync();
+
+            return new SingleUserStatisticsResponse
+            {
+                UserStatistics = usersStatistics.FirstOrDefault( us => us.Username == username )
+            };
+        }
+
+        private async Task<IReadOnlyList<UserStatistics>> GetAllUsersStatisticAsync()
+        {
+            IReadOnlyList<UserMessage> allUserMessages = await _mediator.Send(new AllMessageHistoryQuery());
+            IReadOnlyList<UserStatistics> usersStatistics = await _mediator.Send(new StatsByUserQuery
+            {
+                UsersMessages = allUserMessages
+            });
+
+            return usersStatistics;
         }
     }
 }
