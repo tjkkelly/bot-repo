@@ -5,6 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using MediatR;
+using TheCountBot.Core;
+using TheCountBot.Data;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using TheCountBot.Data.Repositories;
 
 namespace TheCountBot.Api
 {
@@ -35,6 +40,23 @@ namespace TheCountBot.Api
             services.AddOptions();
             services.Configure<Settings>( Configuration );
 
+            Settings settings = GetSettingsFromServiceCollection( services );
+
+            services.AddDbContext<NumberStoreContext>( options => 
+            {
+                if ( settings.IsDebug )
+                {
+                    options.UseInMemoryDatabase( databaseName: "doesntMatter" );
+                }
+                else
+                {
+                    options.UseSqlServer( settings.SqlConnectionStringReadWrite );
+                }
+            }, ServiceLifetime.Transient );
+
+            services.AddSingleton( new PreviousMessageStateTracker() );
+            services.AddScoped<INumberStoreRepository, NumberStoreRepository>();
+
             services.AddMediatR();
 
             services.AddSwaggerGen(c =>
@@ -64,6 +86,11 @@ namespace TheCountBot.Api
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Count Bot Api v1");
             });
+        }
+
+        private Settings GetSettingsFromServiceCollection( IServiceCollection services )
+        {
+            return services.BuildServiceProvider().GetRequiredService<IOptions<Settings>>().Value;
         }
     }
 }
