@@ -5,6 +5,7 @@ using MediatR;
 using TheCountBot.Core.Queries;
 using TheCountBot.Core.Commands;
 using TheCountBot.Api.ApiResponses;
+using TheCountBot.Core.DataModels;
 
 namespace TheCountBot.Api.Controllers
 {
@@ -28,10 +29,13 @@ namespace TheCountBot.Api.Controllers
             });
 
             int number = 0;
+            NumberFacts numberFacts = new NumberFacts();
 
             if ( isCorrect )
             {
                 number = int.Parse( requestBody.Number );
+
+                numberFacts = await _mediator.Send( new NumberFactsQuery { Number = number } );
             }
 
             await _mediator.Send( new AddNewEntryCommand
@@ -45,7 +49,10 @@ namespace TheCountBot.Api.Controllers
             return new NewMessageResponse 
             { 
                 UserName = requestBody.Username,
-                IsCorrect = isCorrect
+                IsCorrect = isCorrect,
+                IsPowerOf10 = numberFacts.IsPowerOf10,
+                IsPalindrome = numberFacts.IsPalindrome,
+                IsAllSameDigits = numberFacts.IsAllSameDigits
             };
         }
     }
