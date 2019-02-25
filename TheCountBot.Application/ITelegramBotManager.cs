@@ -5,6 +5,6 @@ namespace TheCountBot
 {
     internal interface ITelegramBotManager
     {
-        Task RunAsync( IServiceProvider serviceProvider );
+        Task RunAsync();
     }
 }

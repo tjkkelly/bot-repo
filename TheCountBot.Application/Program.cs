@@ -54,7 +54,7 @@ namespace TheCountBot
             
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            await serviceProvider.GetService<ITelegramBotManager>().RunAsync( serviceProvider );
+            await serviceProvider.GetService<ITelegramBotManager>().RunAsync();
         }
     }
 }
