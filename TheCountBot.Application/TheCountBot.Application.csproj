@@ -25,5 +25,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TheCountBot.Data\TheCountBot.Data.csproj" />
+    <ProjectReference Include="..\TheCountBot.Core\TheCountBot.Core.csproj" />
   </ItemGroup>
 </Project>
