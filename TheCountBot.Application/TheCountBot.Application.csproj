@@ -32,5 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Clients\" />
+    <Folder Include="Implementations\" />
   </ItemGroup>
 </Project>

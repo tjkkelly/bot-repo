@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using TheCountBot.Factories;
 using TheCountBot.Data.Repositories;
 using MediatR;
+using TheCountBot.Application.Clients;
 
 namespace TheCountBot
 {

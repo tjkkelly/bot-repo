@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using TheCountBot.Core.Interfaces;
 using ITelegramBotClientExternal = Telegram.Bot.ITelegramBotClient;
 
-namespace TheCountBot.Api.Implementations
+namespace TheCountBot.Application.Implementations
 {
     public class TelegramBotClient : ITelegramBotClient
     {
