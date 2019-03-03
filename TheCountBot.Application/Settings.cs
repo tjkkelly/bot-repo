@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace TheCountBot
@@ -5,6 +6,8 @@ namespace TheCountBot
     public class Settings
     {
         public string BotIdSecret{ get; set; }
+
+        public Uri ApiBaseUrl { get; set; }
 
         public int CountingChatId{ get; set; }
 
