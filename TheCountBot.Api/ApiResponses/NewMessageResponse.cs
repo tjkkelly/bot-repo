@@ -3,7 +3,9 @@
     public class NewMessageResponse
     {
         public string UserName { get; set; }
-     
+
+        public int Number { get; set; }
+
         public bool IsCorrect { get; set; }
 
         public bool IsPalindrome { get; set; }

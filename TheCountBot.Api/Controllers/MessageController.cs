@@ -49,6 +49,7 @@ namespace TheCountBot.Api.Controllers
             return new NewMessageResponse 
             { 
                 UserName = requestBody.Username,
+                Number = number,
                 IsCorrect = isCorrect,
                 IsPowerOf10 = numberFacts.IsPowerOf10,
                 IsPalindrome = numberFacts.IsPalindrome,
