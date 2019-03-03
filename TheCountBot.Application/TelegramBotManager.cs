@@ -90,6 +90,8 @@ namespace TheCountBot
         private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
         {
             Console.WriteLine( "Message Received" );
+            _stateTimer.Change( _settings.TimerWaitTime, _settings.TimerWaitTime );
+
             if ( e.Message.Chat.Id == _settings.MetaCountingChatId )
             {
                 BotCommand command = new BotCommand( e.Message.Text );
