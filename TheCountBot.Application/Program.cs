@@ -8,6 +8,7 @@ using TheCountBot.Data;
 using Microsoft.EntityFrameworkCore;
 using TheCountBot.Factories;
 using TheCountBot.Data.Repositories;
+using MediatR;
 
 namespace TheCountBot
 {
@@ -23,6 +24,7 @@ namespace TheCountBot
             serviceCollection.AddSingleton<ITelegramBotClient>( telegramBotClient );
             serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
+            serviceCollection.AddMediatR();
 
             serviceCollection.AddDbContext<NumberStoreContext>( options => 
             {
