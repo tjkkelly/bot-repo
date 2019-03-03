@@ -30,4 +30,7 @@
     <ProjectReference Include="..\TheCountBot.Data\TheCountBot.Data.csproj" />
     <ProjectReference Include="..\TheCountBot.Core\TheCountBot.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Clients\" />
+  </ItemGroup>
 </Project>
