@@ -10,6 +10,7 @@ using Telegram.Bot.Types.Enums;
 using Microsoft.Extensions.Options;
 using TheCountBot.Application.Models;
 using TheCountBot.Application.Models.Enums;
+using MediatR;
 using TheCountBot.Core.Commands;
 
 namespace TheCountBot
@@ -17,7 +18,7 @@ namespace TheCountBot
     internal class TelegramBotManager : ITelegramBotManager
     {
         private ITelegramBotClient _botClient;
-
+        private readonly IMediator _mediator;
         private Timer _stateTimer;
 
         private List<string> _insultList;
@@ -26,10 +27,11 @@ namespace TheCountBot
 
         private readonly Settings _settings;
 
-        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient )
+        public TelegramBotManager(IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, IMediator mediator )
         {
             _settings = settingsOptions.Value;
             _botClient = telegramBotClient;
+            _mediator = mediator;
             _botClient.OnMessage += OnMessageReceivedAsync;
             _stateTimer = new Timer( TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime );
             _insultList = _settings.InsultsForMessingUpTheNumber;
