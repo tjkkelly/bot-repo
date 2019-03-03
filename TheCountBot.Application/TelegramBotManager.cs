@@ -12,6 +12,8 @@ using TheCountBot.Application.Models;
 using TheCountBot.Application.Models.Enums;
 using MediatR;
 using TheCountBot.Core.Commands;
+using TheCountBot.Application.Clients;
+using TheCountBot.Application.Clients.Models;
 
 namespace TheCountBot
 {
@@ -27,8 +29,11 @@ namespace TheCountBot
 
         private readonly Settings _settings;
 
-        public TelegramBotManager(IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, IMediator mediator )
+        private readonly ICountBotApi _countBotApi;
+
+        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, IMediator mediator, ICountBotApi countBotApi )
         {
+            _countBotApi = countBotApi;
             _settings = settingsOptions.Value;
             _botClient = telegramBotClient;
             _mediator = mediator;
@@ -60,15 +65,26 @@ namespace TheCountBot
 
         private async Task HandleStatsCommandAsync( BotCommand command, string user )
         {
+            List<TheCountBot.Core.DataModels.UserStatistics> userStatistics;
+
             switch( command.commandType )
             {
                 case BotCommandEnum.fullStats:
-
+                    AllUserStatisticsResponse allUserStatisticsResponse = await _countBotApi.NewAllStatsCommandAsyncAsync();
+                    userStatistics = allUserStatisticsResponse.UsersStatistics.Select( us => us.ToCoreUserStatitics() ).ToList();
                     break;
                 case BotCommandEnum.individualStats:
-
+                    SingleUserStatisticsResponse singleUserStatistics = await _countBotApi.NewUserStatsCommandAsyncAsync( user );
+                    userStatistics = new List<Core.DataModels.UserStatistics> { singleUserStatistics.UserStatistics.ToCoreUserStatitics() };
                     break;
+                default:
+                    return;
             }
+
+            await _mediator.Send( new SendFormattedStatsByUserCommand
+            {
+                UsersStatistics = userStatistics
+            });
         }
 
         private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
@@ -86,23 +102,41 @@ namespace TheCountBot
 
             if ( e.Message.Chat.Id == _settings.CountingChatId )
             {
+                NewMessageResponse newMessageResponse = await _countBotApi.NewCountingMessageAsync( new NewMessageRequest
+                {
+                    Username = e.Message.From.Username,
+                    Number = e.Message.Text,
+                    Timestamp = e.Message.Date
+                });
+
+                if ( !newMessageResponse.IsCorrect ?? false )
+                {
+                    await _mediator.Send( new SendIncorrectNumberCommand
+                    {
+                        Username = e.Message.From.Username
+                    });
+                }
+                else
+                { 
+                    await HandleCoolNumbersAsync( newMessageResponse );   
+                }
             }
         }
 
-        //private async Task HandleCoolNumbersAsync( int x, string user )
-        //{
-        //    if ( IsSameDigits( x ) )
-        //    {
-        //        await SendMessageAsync( $"YO @{user}, {x} is made up of all {x % 10}s!" );
-        //    }
-        //    else if ( IsPalindrome( x ) )
-        //    {
-        //        await SendMessageAsync( $"Hey, @{user}! {x} is a palindrome!" );
-        //    }
-        //    else if ( Is1000( x ) )
-        //    {
-        //        await SendMessageAsync( $"AYYYYYY @{user}" );
-        //    }
-        //}
+        private async Task HandleCoolNumbersAsync( NewMessageResponse newMessageResponse )
+        {
+            if ( newMessageResponse.IsAllSameDigits ?? false )
+            {
+                await SendMessageAsync( $"YO @{newMessageResponse.UserName}, {newMessageResponse.Number} is made up of all {newMessageResponse.Number % 10}s!" );
+            }
+            else if ( newMessageResponse.IsPalindrome ?? false )
+            {
+                await SendMessageAsync( $"Hey, @{newMessageResponse.UserName}! {newMessageResponse.Number} is a palindrome!" );
+            }
+            else if ( newMessageResponse.IsPowerOf10 ?? false )
+            {
+                await SendMessageAsync( $"AYYYYYY @{newMessageResponse.UserName}" );
+            }
+        }
     }
 }
