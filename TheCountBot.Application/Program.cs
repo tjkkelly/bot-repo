@@ -10,6 +10,7 @@ using TheCountBot.Factories;
 using TheCountBot.Data.Repositories;
 using MediatR;
 using TheCountBot.Application.Clients;
+using TheCountBot.Core.Factories;
 
 namespace TheCountBot
 {
@@ -25,6 +26,9 @@ namespace TheCountBot
             serviceCollection.AddSingleton<ITelegramBotClient>( telegramBotClient );
             serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
+            serviceCollection.AddSingleton<ICountBotApi>( new CountBotApi( settings.ApiBaseUrl ) );
+            serviceCollection.AddScoped<TheCountBot.Core.Interfaces.ITelegramBotClient, TheCountBot.Application.Implementations.TelegramBotClient>();
+            serviceCollection.AddSingleton( new CustomizedInsultFactory( settings.InsultsForMessingUpTheNumber, new Random() ) );
             serviceCollection.AddMediatR();
 
             serviceCollection.AddDbContext<NumberStoreContext>( options => 
