@@ -246,6 +246,12 @@ namespace TheCountBot
             return true;
         }
 
+        private bool IsPalindromeSetup( int x )
+        {
+            return IsPalindrome( x + 1 );
+
+        }
+
         private bool IsPalindrome( int x )
         {
             //not counting numbers less than 10
@@ -281,6 +287,10 @@ namespace TheCountBot
             else if ( Is1000( x ) )
             {
                 await SendMessageAsync( $"AYYYYYY @{user}" );
+            }
+            else if ( IsPalindromeSetup( x ) )
+            {
+                await SendMessageAsync( $"Yo @{user} thanks for setting us up for a palindrome!" );
             }
         }
 
