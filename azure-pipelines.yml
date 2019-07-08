@@ -4,6 +4,7 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+steps:
 - task: SSH@0
   inputs:
     sshEndpoint: 'the_count_bot'
