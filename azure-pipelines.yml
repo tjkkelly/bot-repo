@@ -10,7 +10,7 @@ steps:
     sshEndpoint: 'the_count_bot'
     runOptions: 'commands'
     commands: |
-      cd bot-repo;
+      cd ~/bot-repo;
       git fetch;
       git checkout master;
       git reset origin/master --hard;
