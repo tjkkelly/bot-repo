@@ -4,7 +4,13 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-stage:
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: SSH@0
+  inputs:
+    sshEndpoint: 'the_count_bot'
+    runOptions: 'commands'
+    commands: |
+      cd bot-repo;
+      docker build -f Dockerfile -t the_count_bot_release_image .;
+      docker stop the_count_bot_release_container;
+      docker run -d --name  the_count_bot_release_container the_count_bot_release_image:latest;
