@@ -11,6 +11,9 @@ steps:
     runOptions: 'commands'
     commands: |
       cd bot-repo;
-      docker build -f Dockerfile -t the_count_bot_release_image .;
+      git fetch;
+      git checkout master;
+      git reset origin/master --hard;
+      docker build -t the_count_bot_release_image .;
       docker stop the_count_bot_release_container;
       docker run -d --name  the_count_bot_release_container the_count_bot_release_image:latest;
