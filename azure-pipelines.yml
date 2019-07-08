@@ -8,8 +8,8 @@ steps:
 - task: SSH@0
   inputs:
     sshEndpoint: 'the_count_bot'
-    runOptions: 'commands'
-    commands: |
+    runOptions: 'inline'
+    inline: |
       ls -al;
       cd ~/bot-repo;
       ls -al;
