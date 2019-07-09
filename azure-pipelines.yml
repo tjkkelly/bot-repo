@@ -10,12 +10,11 @@ steps:
     sshEndpoint: 'the_count_bot'
     runOptions: 'inline'
     inline: |
-      ls -al;
       cd ~/bot-repo;
-      ls -al;
       git fetch;
       git checkout master;
       git reset origin/master --hard;
       docker build -t the_count_bot_release_image .;
-      docker stop the_count_bot_release_container;
+      docker stop the_count_bot_release_container || true;
+      docker rm the_count_bot_release_container || true;
       docker run -d --name  the_count_bot_release_container the_count_bot_release_image:latest;
