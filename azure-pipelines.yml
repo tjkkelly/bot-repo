@@ -12,9 +12,9 @@ steps:
     inline: |
       cd ~/bot-repo;
       git fetch;
-      git checkout master;
+      git checkout master 2>&1;
       git reset origin/master --hard;
       docker build -t the_count_bot_release_image .;
-      docker stop the_count_bot_release_container 2> /dev/tty;
-      docker rm the_count_bot_release_container 2> /dev/tty;
+      docker stop the_count_bot_release_container 2>&1;
+      docker rm the_count_bot_release_container 2>&1;
       docker run -d --name  the_count_bot_release_container the_count_bot_release_image:latest;
