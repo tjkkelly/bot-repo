@@ -274,6 +274,16 @@ namespace TheCountBot
             return x > 1000 && x % 1000 == 0;
         }
 
+        private bool IsNice( int x )
+        {
+            return x % 100 == 69;
+        }
+
+        private bool IsDank( int x )
+        {
+            return x % 1000 == 420;
+        }
+
         private async Task HandleCoolNumbersAsync( int x, string user )
         {
             if ( IsSameDigits( x ) )
@@ -291,6 +301,14 @@ namespace TheCountBot
             else if ( IsPalindromeSetup( x ) )
             {
                 await SendMessageAsync( $"Yo @{user} thanks for setting us up for a palindrome!" );
+            }
+            else if ( IsNice( x ) )
+            {
+                await SendMessageAsync( $"@{user} Nice." );
+            }
+            else if ( IsDank(x) )
+            {
+                await SendMessageAsync( $"@{user} blaze it!" );
             }
         }
 
