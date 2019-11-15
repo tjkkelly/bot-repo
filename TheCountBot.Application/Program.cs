@@ -27,6 +27,7 @@ namespace TheCountBot
             serviceCollection.AddSingleton<ITelegramBotClient>( telegramBotClient );
             serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
+            serviceCollection.AddScoped<IStatsManager, StatsManager>();
 
             serviceCollection.AddDbContext<NumberStoreContext>( options => 
             {
