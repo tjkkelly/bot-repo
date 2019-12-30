@@ -152,6 +152,7 @@ namespace TheCountBot
 
         }
 
+
         private bool IsPalindrome( int x )
         {
             //not counting numbers less than 10
@@ -172,6 +173,11 @@ namespace TheCountBot
         private bool Is1000( int x )
         {
             return x > 1000 && x % 1000 == 0;
+        }
+
+        private bool IsEvil( int x )
+        {
+            return x % 1000 == 666;
         }
 
         private bool IsNice( int x )
@@ -202,9 +208,17 @@ namespace TheCountBot
             {
                 await SendMessageAsync( $"Yo @{user} thanks for setting us up for a palindrome!" );
             }
+
+palindrome!" );
+            }
             else if ( IsNice( x ) )
             {
                 await SendMessageAsync( $"@{user} Nice." );
+            }
+
+            else if ( IsEvil( x ) )
+            {
+                await SendMessageAsync( $"@{user} you devil, you!" );
             }
             else if ( IsDank(x) )
             {
