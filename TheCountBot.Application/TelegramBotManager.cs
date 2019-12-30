@@ -179,6 +179,11 @@ namespace TheCountBot
             return x % 100 == 69;
         }
 
+        private bool IsEvil( int x )
+        {
+            return x % 1000 == 666;
+        }
+
         private bool IsDank( int x )
         {
             return x % 1000 == 420;
@@ -201,6 +206,10 @@ namespace TheCountBot
             else if ( IsPalindromeSetup( x ) )
             {
                 await SendMessageAsync( $"Yo @{user} thanks for setting us up for a palindrome!" );
+            }
+            else if ( IsEvil( x ) )
+            {
+                await SendMessageAsync( $"@{user} you devil, you!" );
             }
             else if ( IsNice( x ) )
             {
