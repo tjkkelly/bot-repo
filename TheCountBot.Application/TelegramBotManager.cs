@@ -168,6 +168,34 @@ namespace TheCountBot
 
             return original == reverse;
         }
+        
+        private bool IsACoolThing( int x )
+        {
+            /*
+            Stuff like
+            23233 (2 2s and 3 3s)
+            333 (3 3's)
+            2214444 (you get the point)
+            */
+            Dictionary<int, int> stuff = new Dictionary<int, int>();
+            while ( x > 0 )
+            {
+                lastDigit=x%10;
+                // python has defaultdicts wouldn't that be nice to have here
+                if ( ! stuff.ContainsKey(lastDigit) ) {
+                    stuff[lastDigit]=0;
+                }
+                stuff[lastDigit]+=1;
+                x /= 10;
+            }
+            
+            foreach (KeyValuePair<int, int> item in stuff) {
+                if (item.Key != item.Value) {
+                    return False;
+                }
+            }
+            return True;
+        }
 
         private bool Is1000( int x )
         {
@@ -218,6 +246,10 @@ namespace TheCountBot
             else if ( IsDank(x) )
             {
                 await SendMessageAsync( $"@{user} blaze it!" );
+            }
+            else if ( IsACoolThing(x) )
+            {
+                await SendMessageAsync( $"@{user} this number sorta describes itself" );
             }
         }
         private string GetRandomInsultMessageForUser( string user )
