@@ -12,6 +12,8 @@ using TheCountBot.Application.Models;
 using TheCountBot.Application.Models.Enums;
 using TheCountBot.Data.Repositories;
 
+// nop to kick the bot because I'm lazy and this hack works. 
+
 namespace TheCountBot
 {
     internal class TelegramBotManager : ITelegramBotManager
