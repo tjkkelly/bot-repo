@@ -26,7 +26,9 @@ namespace TheCountBot
 
         private List<string> _insultList;
 
-        private Random _rng = new Random();
+        private Random _rng_insult = new Random();
+        
+        private Random _rng_chaos = new Random();
 
         private readonly Settings _settings;
 
@@ -73,7 +75,7 @@ namespace TheCountBot
         {
             if ( x.StartsWith( "0" ) ) return false;
 
-            //potentially other checks...
+            // potentially other checks...
 
             return true;
         }
@@ -188,6 +190,11 @@ namespace TheCountBot
         {
             return x % 1000 == 420;
         }
+        
+        private bool IsChaotic()
+        {
+            return _rng_chaos.Next(0, 250) == 0;
+        }
 
         private async Task HandleCoolNumbersAsync( int x, string user )
         {
@@ -219,10 +226,14 @@ namespace TheCountBot
             {
                 await SendMessageAsync( $"@{user} blaze it!" );
             }
+            else if ( IsChaotic() ) 
+            {
+                await SendMessageAsync( $"AYO @{user} NICE WORK" );
+            }
         }
         private string GetRandomInsultMessageForUser( string user )
         {
-            int _randInt = _rng.Next( 0, _insultList.Count );
+            int _randInt = _rng_insult.Next( 0, _insultList.Count );
             string message = _insultList[_randInt].Replace( "{username}", user );
 
             return message;
