@@ -228,7 +228,7 @@ namespace TheCountBot
             }
             else if ( IsChaotic() ) 
             {
-                await SendMessageAsync( $"AYO @{user} NICE WORK" );
+                await SendMessageAsync( $"AYO @{user}! That's a nice number you wrote there <3" );
             }
         }
         private string GetRandomInsultMessageForUser( string user )
