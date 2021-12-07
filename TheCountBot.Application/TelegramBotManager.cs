@@ -176,9 +176,14 @@ namespace TheCountBot
             return x > 1000 && x % 1000 == 0;
         }
 
-        private bool IsNice( int x )
-        {
-            return x % 100 == 69;
+        private  bool IsNice( int x ){
+            while ( x >=10 ) {
+                if ( x % 100 == 69 ){
+                    return true;
+                }
+                x /=10;
+            }
+            return false;
         }
 
         private bool IsEvil( int x )
