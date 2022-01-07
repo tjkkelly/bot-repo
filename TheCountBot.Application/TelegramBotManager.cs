@@ -191,6 +191,29 @@ namespace TheCountBot
             return x % 1000 == 420;
         }
         
+        private bool IsSelfDescribing( int x )
+        {
+
+             Dictionary<int, int> counter = new Dictionary<int, int>();
+             while ( x > 0 )
+             {
+                 var lastDigit=x%10;
+                 x /= 10;
+                 
+                 if ( ! counter.ContainsKey(lastDigit) ) {
+                     counter[lastDigit]=0;
+                 }
+                 counter[lastDigit]+=1;
+             }
+
+             foreach (KeyValuePair<int, int> pair in counter) {
+                 if (pair.Key != pair.Value) {
+                     return false;
+                 }
+             }
+             return true;
+        }
+        
         private bool IsChaotic()
         {
             return _rng_chaos.Next(0, 250) == 0;
@@ -225,6 +248,10 @@ namespace TheCountBot
             else if ( IsDank(x) )
             {
                 await SendMessageAsync( $"@{user} blaze it!" );
+            }
+            else if ( IsSelfDescribing(x) )
+            {
+                await SendMessageAsync( $"Yo @{user} that number is kinda cool!" );
             }
             else if ( IsChaotic() ) 
             {
