@@ -216,7 +216,7 @@ namespace TheCountBot
         
         private bool IsChaotic()
         {
-            return _rng_chaos.Next(0, 250) == 0;
+            return _rng_chaos.Next(0, 175) == 0;
         }
 
         private async Task HandleCoolNumbersAsync( int x, string user )
