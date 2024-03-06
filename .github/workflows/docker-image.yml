@@ -27,5 +27,5 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        tags: tjkkelly/theCountBotApp:latest
+        tags: tjkkelly/the-count-bot-tg-app:latest
         
