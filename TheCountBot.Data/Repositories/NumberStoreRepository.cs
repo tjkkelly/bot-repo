@@ -18,7 +18,7 @@ namespace TheCountBot.Data.Repositories
         {
             NumberStoreContext context = GetNumberStoreContext( serviceProvider );
 
-            context.Add( messageEntry );
+            context.MessageEntries.Add( messageEntry );
             await context.SaveChangesAsync();
         }
 

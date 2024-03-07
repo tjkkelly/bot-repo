@@ -9,8 +9,8 @@ namespace TheCountBot.Factories
     {
         public static IConfigurationRoot CreateConfigurationBuilder()
         {
-            string debugFileName = $"cntBotSettings.debug.json";
-            string releaseFileName = $"cntBotSettings.release.json";
+            string debugFileName = $"/private/cntBotSettings.debug.json";
+            string releaseFileName = $"/private/cntBotSettings.release.json";
 
             return new ConfigurationBuilder()
                 .SetBasePath( Path.GetDirectoryName( System.Reflection.Assembly.GetExecutingAssembly().Location ) )

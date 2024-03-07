@@ -1,10 +1,5 @@
-using MySql.Data.MySqlClient;  
-using System;  
-using System.Collections.Generic;  
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TheCountBot.Data.Models;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace TheCountBot.Data
 {
@@ -12,8 +7,7 @@ namespace TheCountBot.Data
     {
         public DbSet<MessageEntry> MessageEntries { get; set; }
 
-        public NumberStoreContext( DbContextOptions<NumberStoreContext> numberStoreContextOptions )
-           : base( numberStoreContextOptions )
+        public NumberStoreContext(DbContextOptions<NumberStoreContext> options) : base(options)
         {
         }
     }
