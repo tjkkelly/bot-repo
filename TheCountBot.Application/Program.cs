@@ -25,7 +25,7 @@ namespace TheCountBot
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
             serviceCollection.AddScoped<IStatsManager, StatsManager>();
 
-            serviceCollection.AddDbContext<NumberStoreContext>(options => options.UseMySQL(settings.MySqlConnectionString));
+            serviceCollection.AddDbContext<NumberStoreContext>(options => options.UseMySQL(settings.MySqlConnectionString), ServiceLifetime.Transient);
         }
 
         private static void ConfigureServices(IServiceCollection serviceCollection)
