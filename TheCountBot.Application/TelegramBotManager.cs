@@ -79,7 +79,7 @@ namespace TheCountBot
 
         private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
-            System.Console.WriteLine("Message Received");
+            Console.WriteLine("Message Received chatId {0} msg {1}", e.Message.Chat.Id, e.Message.Text);
             if (e.Message.Chat.Id == _settings.MetaCountingChatId)
             {
                 BotCommand command = new BotCommand(e.Message.Text);
@@ -129,6 +129,14 @@ namespace TheCountBot
 
                 _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
                 await _numberStoreRepository.AddNewMessageEntryAsync(_serviceProvider, messageEntry);
+            }
+            else
+            {
+                string messageText = e.Message.Text;
+                if (messageText.Equals("insult me", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await _botClient.SendTextMessageAsync(e.Message.Chat.Id, await GetRandomInsultMessageForUserAsync(e.Message.From.Username));
+                }
             }
         }
 
