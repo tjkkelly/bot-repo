@@ -16,16 +16,13 @@ namespace TheCountBot
         private static void RegisteredDependencies(IServiceCollection serviceCollection)
         {
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
-            Settings settings = serviceProvider.GetService<IOptions<Settings>>().Value;
 
-            ITelegramBotClient telegramBotClient = new TelegramBotClient(settings.BotIdSecret);
-
-            serviceCollection.AddSingleton<ITelegramBotClient>(telegramBotClient);
+            serviceCollection.AddSingleton<ITelegramBotClient>((IServiceProvider sp) => new TelegramBotClient(sp.GetService<IOptions<Settings>>().Value.BotIdSecret));
             serviceCollection.AddScoped<ITelegramBotManager, TelegramBotManager>();
             serviceCollection.AddScoped<INumberStoreRepository, NumberStoreRepository>();
             serviceCollection.AddScoped<IStatsManager, StatsManager>();
 
-            serviceCollection.AddDbContext<NumberStoreContext>(options => options.UseMySQL(settings.MySqlConnectionString), ServiceLifetime.Transient);
+            serviceCollection.AddDbContext<NumberStoreContext>((IServiceProvider sp, DbContextOptionsBuilder options) => options.UseMySQL(sp.GetService<IOptions<Settings>>().Value.MySqlConnectionString), ServiceLifetime.Transient);
         }
 
         private static void ConfigureServices(IServiceCollection serviceCollection)
