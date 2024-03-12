@@ -9,32 +9,32 @@ namespace TheCountBot.Data.Models
         public int MessageEntryId
         {
             get;
-            set;   
+            set;
         }
 
-        [MaxLength( 64 )]
+        [MaxLength(64)]
         public string Username
         {
             get;
-            set;   
+            set;
         }
 
         public int Number
         {
             get;
-            set;   
+            set;
         }
 
         public bool Correct
         {
             get;
-            set;   
+            set;
         }
 
         public DateTime Timestamp
         {
             get;
-            set;   
+            set;
         }
 
         public override string ToString()

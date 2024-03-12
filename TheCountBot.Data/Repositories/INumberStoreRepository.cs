@@ -7,8 +7,10 @@ namespace TheCountBot.Data.Repositories
 {
     public interface INumberStoreRepository
     {
-        Task AddNewMessageEntryAsync( IServiceProvider serviceProvider, MessageEntry messageEntry );
+        Task AddNewMessageEntryAsync(IServiceProvider serviceProvider, MessageEntry messageEntry);
 
-        Task<List<MessageEntry>> GetHistoryAsync( IServiceProvider serviceProvider );
+        Task<List<MessageEntry>> GetHistoryAsync(IServiceProvider serviceProvider);
+
+        Task<UserInsult> GetRandomUserInsultAsync(IServiceProvider serviceProvider);
     }
 }

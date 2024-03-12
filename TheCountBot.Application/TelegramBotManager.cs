@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Args;
-using System.Linq;
 using System.Collections.Generic;
 using System;
 using TheCountBot.Data.Models;
@@ -26,8 +25,6 @@ namespace TheCountBot
 
         private List<string> _insultList;
 
-        private Random _rng_insult = new Random();
-        
         private Random _rng_chaos = new Random();
 
         private readonly Settings _settings;
@@ -38,57 +35,57 @@ namespace TheCountBot
 
         private readonly IStatsManager _statsManager;
 
-        public TelegramBotManager( IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, INumberStoreRepository numberStoreRepository, IStatsManager statsManager )
+        public TelegramBotManager(IOptions<Settings> settingsOptions, ITelegramBotClient telegramBotClient, INumberStoreRepository numberStoreRepository, IStatsManager statsManager)
         {
             _settings = settingsOptions.Value;
             _botClient = telegramBotClient;
             _botClient.OnMessage += OnMessageReceivedAsync;
-            _stateTimer = new Timer( TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime );
+            _stateTimer = new Timer(TimerFunc, null, _settings.TimerWaitTime, _settings.TimerWaitTime);
             _insultList = _settings.InsultsForMessingUpTheNumber;
             _numberStoreRepository = numberStoreRepository;
             _statsManager = statsManager;
         }
 
-        public async Task RunAsync( IServiceProvider serviceProvider )
+        public async Task RunAsync(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
 
-            await SendMessageAsync( "Welcome me, heathens" );
+            await SendMessageAsync("Welcome me, heathens");
             _botClient.StartReceiving();
 
-            Thread.Sleep( Timeout.Infinite );
+            Thread.Sleep(Timeout.Infinite);
 
             _botClient.StopReceiving();
         }
 
         private void TimerFunc(object stateInfo)
         {
-            SendMessageAsync( "I'm lonely..." ).Wait();
+            SendMessageAsync("I'm lonely...").Wait();
         }
 
-        private async Task SendMessageAsync( string message, ParseMode mode = ParseMode.Default )
+        private async Task SendMessageAsync(string message, ParseMode mode = ParseMode.Default)
         {
-            await _botClient.SendTextMessageAsync( _settings.MetaCountingChatId, message, mode );
+            await _botClient.SendTextMessageAsync(_settings.MetaCountingChatId, message, mode);
         }
 
-        private bool MoreRobustNumberCheck( string x )
+        private bool MoreRobustNumberCheck(string x)
         {
-            if ( x.StartsWith( "0" ) ) return false;
+            if (x.StartsWith("0")) return false;
 
             // potentially other checks...
 
             return true;
         }
 
-        private async void OnMessageReceivedAsync( object sender, MessageEventArgs e )
+        private async void OnMessageReceivedAsync(object sender, MessageEventArgs e)
         {
             System.Console.WriteLine("Message Received");
-            if ( e.Message.Chat.Id == _settings.MetaCountingChatId )
+            if (e.Message.Chat.Id == _settings.MetaCountingChatId)
             {
                 BotCommand command = new BotCommand(e.Message.Text);
                 if (command.commandType != BotCommandEnum.noCommand)
                 {
-                    await _statsManager.HandleStatsCommandAsync( command, e.Message.From.Username, _serviceProvider );
+                    await _statsManager.HandleStatsCommandAsync(command, e.Message.From.Username, _serviceProvider);
                     return;
                 }
             }
@@ -101,15 +98,15 @@ namespace TheCountBot
                     Timestamp = DateTime.UtcNow
                 };
 
-                bool isNumberValue = int.TryParse( e.Message.Text, out int number );
-                if( e.Message.Text != null )
+                bool isNumberValue = int.TryParse(e.Message.Text, out int number);
+                if (e.Message.Text != null)
                 {
-                    isNumberValue &= MoreRobustNumberCheck( e.Message.Text );
+                    isNumberValue &= MoreRobustNumberCheck(e.Message.Text);
                 }
 
-                if ( !isNumberValue
-                        || ( _lastUserToSendCorrect != null && ( _lastUserToSendCorrect == e.Message.From.Username ) )
-                        || ( ( _lastNumber != null) && number != _lastNumber + 1 ) )
+                if (!isNumberValue
+                        || (_lastUserToSendCorrect != null && (_lastUserToSendCorrect == e.Message.From.Username))
+                        || ((_lastNumber != null) && number != _lastNumber + 1))
                 {
                     _lastUserToSendCorrect = null;
                     _lastNumber = null;
@@ -117,7 +114,7 @@ namespace TheCountBot
                     messageEntry.Correct = false;
                     messageEntry.Number = -1;
 
-                    await SendMessageAsync( GetRandomInsultMessageForUser( e.Message.From.Username ) );
+                    await SendMessageAsync(await GetRandomInsultMessageForUserAsync(e.Message.From.Username));
                 }
                 else
                 {
@@ -127,143 +124,144 @@ namespace TheCountBot
                     messageEntry.Correct = true;
                     messageEntry.Number = number;
 
-                    await HandleCoolNumbersAsync( number, e.Message.From.Username );
+                    await HandleCoolNumbersAsync(number, e.Message.From.Username);
                 }
 
-                _stateTimer.Change( _settings.TimerWaitTime, _settings.TimerWaitTime );
-                await _numberStoreRepository.AddNewMessageEntryAsync( _serviceProvider, messageEntry );
+                _stateTimer.Change(_settings.TimerWaitTime, _settings.TimerWaitTime);
+                await _numberStoreRepository.AddNewMessageEntryAsync(_serviceProvider, messageEntry);
             }
         }
 
-        private bool IsSameDigits( int x )
+        private bool IsSameDigits(int x)
         {
             //not counting numbers less than 10
-            if ( x < 10 ) return false;
-            int firstDigit=x%10;
+            if (x < 10) return false;
+            int firstDigit = x % 10;
 
-            while ( x > 0 ){
-                if ( x % 10 != firstDigit ) return false;
+            while (x > 0)
+            {
+                if (x % 10 != firstDigit) return false;
                 x /= 10;
             }
             return true;
         }
 
-        private bool IsPalindromeSetup( int x )
+        private bool IsPalindromeSetup(int x)
         {
-            return IsPalindrome( x + 1 );
+            return IsPalindrome(x + 1);
 
         }
 
-        private bool IsPalindrome( int x )
+        private bool IsPalindrome(int x)
         {
             //not counting numbers less than 10
-            if ( x < 10 ) return false;
+            if (x < 10) return false;
 
-            int original=x, reverse=0;
+            int original = x, reverse = 0;
 
-            while ( x > 0 )
+            while (x > 0)
             {
-                reverse*=10;
-                reverse+=x%10;
+                reverse *= 10;
+                reverse += x % 10;
                 x /= 10;
             }
 
             return original == reverse;
         }
 
-        private bool Is1000( int x )
+        private bool Is1000(int x)
         {
             return x > 1000 && x % 1000 == 0;
         }
 
-        private bool IsNice( int x )
+        private bool IsNice(int x)
         {
             return x % 100 == 69;
         }
 
-        private bool IsEvil( int x )
+        private bool IsEvil(int x)
         {
             return x % 1000 == 666;
         }
 
-        private bool IsDank( int x )
+        private bool IsDank(int x)
         {
             return x % 1000 == 420;
         }
-        
-        private bool IsSelfDescribing( int x )
+
+        private bool IsSelfDescribing(int x)
         {
 
-             Dictionary<int, int> counter = new Dictionary<int, int>();
-             while ( x > 0 )
-             {
-                 var lastDigit=x%10;
-                 x /= 10;
-                 
-                 if ( ! counter.ContainsKey(lastDigit) ) {
-                     counter[lastDigit]=0;
-                 }
-                 counter[lastDigit]+=1;
-             }
+            Dictionary<int, int> counter = new Dictionary<int, int>();
+            while (x > 0)
+            {
+                var lastDigit = x % 10;
+                x /= 10;
 
-             foreach (KeyValuePair<int, int> pair in counter) {
-                 if (pair.Key != pair.Value) {
-                     return false;
-                 }
-             }
-             return true;
+                if (!counter.ContainsKey(lastDigit))
+                {
+                    counter[lastDigit] = 0;
+                }
+                counter[lastDigit] += 1;
+            }
+
+            foreach (KeyValuePair<int, int> pair in counter)
+            {
+                if (pair.Key != pair.Value)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
-        
+
         private bool IsChaotic()
         {
             return _rng_chaos.Next(0, 175) == 0;
         }
 
-        private async Task HandleCoolNumbersAsync( int x, string user )
+        private async Task HandleCoolNumbersAsync(int x, string user)
         {
-            if ( IsSameDigits( x ) )
+            if (IsSameDigits(x))
             {
-                await SendMessageAsync( $"YO @{user}, {x} is made up of all {x % 10}s!" );
+                await SendMessageAsync($"YO @{user}, {x} is made up of all {x % 10}s!");
             }
-            else if ( IsPalindrome( x ) )
+            else if (IsPalindrome(x))
             {
-                await SendMessageAsync( $"Hey, @{user}! {x} is a palindrome!" );
+                await SendMessageAsync($"Hey, @{user}! {x} is a palindrome!");
             }
-            else if ( Is1000( x ) )
+            else if (Is1000(x))
             {
-                await SendMessageAsync( $"AYYYYYY @{user}" );
+                await SendMessageAsync($"AYYYYYY @{user}");
             }
-            else if ( IsPalindromeSetup( x ) )
+            else if (IsPalindromeSetup(x))
             {
-                await SendMessageAsync( $"Yo @{user} thanks for setting us up for a palindrome!" );
+                await SendMessageAsync($"Yo @{user} thanks for setting us up for a palindrome!");
             }
-            else if ( IsEvil( x ) )
+            else if (IsEvil(x))
             {
-                await SendMessageAsync( $"@{user} you devil, you!" );
+                await SendMessageAsync($"@{user} you devil, you!");
             }
-            else if ( IsNice( x ) )
+            else if (IsNice(x))
             {
-                await SendMessageAsync( $"@{user} Nice." );
+                await SendMessageAsync($"@{user} Nice.");
             }
-            else if ( IsDank(x) )
+            else if (IsDank(x))
             {
-                await SendMessageAsync( $"@{user} blaze it!" );
+                await SendMessageAsync($"@{user} blaze it!");
             }
-            else if ( IsSelfDescribing(x) )
+            else if (IsSelfDescribing(x))
             {
-                await SendMessageAsync( $"Yo @{user} that number is kinda cool!" );
+                await SendMessageAsync($"Yo @{user} that number is kinda cool!");
             }
-            else if ( IsChaotic() ) 
+            else if (IsChaotic())
             {
-                await SendMessageAsync( $"AYO @{user}! That's a nice number you wrote there <3" );
+                await SendMessageAsync($"AYO @{user}! That's a nice number you wrote there <3");
             }
         }
-        private string GetRandomInsultMessageForUser( string user )
+        private async Task<string> GetRandomInsultMessageForUserAsync(string user)
         {
-            int _randInt = _rng_insult.Next( 0, _insultList.Count );
-            string message = _insultList[_randInt].Replace( "{username}", user );
-
-            return message;
+            return (await _numberStoreRepository.GetRandomUserInsultAsync(_serviceProvider)).Value.Replace("{username}", user);
         }
     }
 }
