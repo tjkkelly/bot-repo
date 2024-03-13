@@ -7,11 +7,8 @@ namespace TheCountBot.Factories
     {
         public static IConfigurationRoot CreateConfigurationBuilder()
         {
-            string releaseFileName = $"/private/cntBotSettings.release.json";
-
             return new ConfigurationBuilder()
-                .SetBasePath( Path.GetDirectoryName( System.Reflection.Assembly.GetExecutingAssembly().Location ) )
-                .AddJsonFile( releaseFileName, optional: true )
+                .SetBasePath(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location))
                 .AddEnvironmentVariables()
                 .Build();
         }

@@ -9,22 +9,22 @@ namespace TheCountBot.Application.Models
         public BotCommandEnum commandType { get; set; }
 
 
-        public BotCommand( String command )
+        public BotCommand(String command)
         {
-            parseCommand( command );
+            parseCommand(command);
         }
 
-        private void parseCommand( String command )
+        private void parseCommand(String command)
         {
-            if ( command == "/stats" || command == "/stats@the_cnt_bot" )
+            if (command == "/stats" || command == "/stats@the_cnt_bot")
             {
                 commandType = BotCommandEnum.limitedStats;
             }
-            else if ( command == "/fullstats" || command == "/fullstats@the_cnt_bot" )
+            else if (command == "/fullstats" || command == "/fullstats@the_cnt_bot")
             {
                 commandType = BotCommandEnum.fullStats;
             }
-            else if ( command == "/mystats" || command == "/mystats@the_cnt_bot" )
+            else if (command == "/mystats" || command == "/mystats@the_cnt_bot")
             {
                 commandType = BotCommandEnum.individualStats;
             }
